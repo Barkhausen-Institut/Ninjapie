@@ -343,7 +343,11 @@ class Generator:
     def add_build(self, edge):
         self.build_edges.append(edge)
 
-    def write_to_file(self, outdir):
+    def write_to_file(self, env):
+        outdir = env['BUILDDIR']
+        if not os.path.isdir(outdir):
+            os.makedirs(outdir)
+
         build_file = outdir + '/build.ninja'
         dep_file = outdir + '/.build.deps'
 
@@ -355,11 +359,12 @@ class Generator:
             generator = '1',
             desc = 'Regenerating build.ninja',
         ))
+        ourself = os.path.abspath(__file__)
         self.add_build(BuildEdge(
             'generator',
             outs = [build_file],
             ins = [],
-            deps = ['src/tools/ninjagen.py'],
+            deps = [ourself],
         ))
 
         self._finalize_deps()
@@ -386,12 +391,17 @@ class Generator:
                 b._write_to_file(self.vars, file)
 
         # generate deps of build.ninja
-        build_files = ['configure.py'] + glob('src/**/build.py', recursive = True)
+        build_files = ['configure.py'] + glob('./**/build.py', recursive = True)
         with open(dep_file, 'w') as deps:
             deps.write(build_file + ': ' + ' '.join(build_files))
 
+    def write_compile_cmds(self, env):
+        outdir = env['BUILDDIR']
+        if not os.path.isdir(outdir):
+            os.makedirs(outdir)
+
         # generate compile_commands.json for clangd
-        with open('build/compile_commands.json', 'w') as cmds:
+        with open(outdir + '/compile_commands.json', 'w') as cmds:
             cmds.write('[\n')
             base_dir = os.getcwd()
             c = 0
