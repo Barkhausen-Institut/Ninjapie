@@ -134,7 +134,13 @@ class Env:
                 objs.append(BuildPath.new(self, i))
         return objs
 
+    def c_exe(self, gen, out, ins, libs = [], deps = []):
+        return self._c_cxx_exe(gen, out, ins, linker = self['CC'], libs = libs, deps = deps)
+
     def cxx_exe(self, gen, out, ins, libs = [], deps = []):
+        return self._c_cxx_exe(gen, out, ins, linker = self['CXX'], libs = libs, deps = deps)
+
+    def _c_cxx_exe(self, gen, out, ins, linker, libs = [], deps = []):
         flags = ' '.join(self['LINKFLAGS'])
         flags += ' ' + ' '.join(['-L' + d for d in self['LIBPATH']])
         flags += ' -Wl,--start-group'
@@ -149,7 +155,7 @@ class Env:
             deps = deps,
             pre_deps = libs,
             lib_path = self['LIBPATH'],
-            vars = { 'link' : self['CXX'], 'linkflags' : flags }
+            vars = { 'link' : linker, 'linkflags' : flags }
         )
         gen.add_build(edge)
         return bin
