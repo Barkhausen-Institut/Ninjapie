@@ -1,0 +1,47 @@
+#!/bin/sh
+
+build=build
+
+usage() {
+    echo "$1 [-b <build-directory>] [-c] [<ninja-argument> ...]" >&2
+    echo "  -b <build-directory>: specifies the build directory (default: build)"
+    echo "  -c:                   clean build directory"
+    exit
+}
+
+while [ $# -gt 0 ]; do
+    if [ "$1" = "-b" ]; then
+        build="$2"
+        shift
+    elif [ "$1" = "-c" ]; then
+        rm -rf "$build"
+    elif [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "-?" ]; then
+        usage "$0"
+    else
+        break
+    fi
+    shift
+done
+
+mkdir -p "$build"
+
+# add this directory to PYTHONPATH so that we can import ninjapie in the build.py files
+root=$(dirname "$(readlink -f "$0")")
+export PYTHONPATH="$root:$PYTHONPATH"
+
+# redo the configuration if any file was added/removed
+filesid="$build/.all-files.id"
+find . -type f -not -path "$build" > "$filesid.new"
+if [ ! -f "$build/build.ninja" ] || ! cmp "$filesid.new" "$filesid" 1>/dev/null 2>&1; then
+    python -B build.py || exit 1
+    mv "$filesid.new" "$filesid"
+fi
+
+# now build everything with ninja
+ninja -f "$build/build.ninja" "$@" >&2 || {
+    # ensure that we regenerate the build.ninja next time. Since ninja does not accept the
+    # build.ninja, it will also not detect changes our build files in order to regenerate it.
+    # Therefore, force ourself to regenerate it by removing our "files id".
+    rm -f "$filesid"
+    exit 1
+}

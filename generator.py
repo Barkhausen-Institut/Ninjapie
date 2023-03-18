@@ -110,15 +110,13 @@ class Generator:
 
     def write_to_file(self, env):
         outdir = env['BUILDDIR']
-        if not os.path.isdir(outdir):
-            os.makedirs(outdir)
 
         build_file = outdir + '/build.ninja'
         dep_file = outdir + '/.build.deps'
 
         # rules and build edge to automatically regenerate the build.ninja
         self.add_rule('generator', Rule(
-            cmd = './configure.py',
+            cmd = 'python -B build.py',
             depfile = outdir + '/.build.deps',
             pool = 'build_pool',
             generator = '1',
@@ -156,14 +154,12 @@ class Generator:
                 b._write_to_file(self.vars, file)
 
         # generate deps of build.ninja
-        build_files = ['configure.py'] + glob('./**/build.py', recursive = True)
+        build_files = ['build.py'] + glob('./**/build.py', recursive = True)
         with open(dep_file, 'w') as deps:
             deps.write(build_file + ': ' + ' '.join(build_files))
 
     def write_compile_cmds(self, env):
         outdir = env['BUILDDIR']
-        if not os.path.isdir(outdir):
-            os.makedirs(outdir)
 
         # generate compile_commands.json for clangd
         with open(outdir + '/compile_commands.json', 'w') as cmds:
