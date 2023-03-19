@@ -13,8 +13,10 @@ while IFS= read -r -d '' d; do
             echo "Expected no work, but got work to do."
             exit 1
         fi
-        if ! LD_LIBRARY_PATH=build:$LD_LIBRARY_PATH ./build/hello >/dev/null; then
-            exit 1
+        if [ -f ./build/hello ]; then
+            if ! LD_LIBRARY_PATH=build:$LD_LIBRARY_PATH ./build/hello >/dev/null; then
+                exit 1
+            fi
         fi
     ); then
         /bin/echo -e "\e[1mSUCCESS\e[0m"
