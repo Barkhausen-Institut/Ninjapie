@@ -167,7 +167,8 @@ class Env:
             vars = { 'ar' : self['AR'], 'ranlib' : self['RANLIB'], 'arflags' : flags }
         )
         gen.add_build(edge)
-        if install:
+        # don't install it if the library is already in LIBDIR
+        if install and os.path.dirname(os.path.abspath(lib)) != os.path.abspath(self['LIBDIR']):
             self.install(gen, self['LIBDIR'], lib)
         return lib
 
@@ -181,7 +182,8 @@ class Env:
             vars = { 'shlink' : self['SHLINK'], 'shlinkflags' : flags }
         )
         gen.add_build(edge)
-        if install:
+        # don't install it if the library is already in LIBDIR
+        if install and os.path.dirname(os.path.abspath(lib)) != os.path.abspath(self['LIBDIR']):
             self.install(gen, self['LIBDIR'], lib)
         return lib
 
