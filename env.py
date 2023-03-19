@@ -194,11 +194,13 @@ class Env:
         return self._c_cxx_exe(gen, out, ins, libs, deps, self['CXX'])
 
     def _c_cxx_exe(self, gen, out, ins, libs, deps, linker):
-        flags = ' '.join(self['LINKFLAGS'])
-        flags += ' ' + ' '.join(['-L' + d for d in self['LIBPATH']])
-        flags += ' -Wl,--start-group'
-        flags += ' ' + ' '.join(['-l' + l for l in libs])
-        flags += ' -Wl,--end-group'
+        flags = ''
+        if len(libs) > 0:
+            flags += ' '.join(self['LINKFLAGS'])
+            flags += ' ' + ' '.join(['-L' + d for d in self['LIBPATH']])
+            flags += ' -Wl,--start-group'
+            flags += ' ' + ' '.join(['-l' + l for l in libs])
+            flags += ' -Wl,--end-group'
 
         bin = BuildPath.new(self, out)
         edge = BuildEdge(
