@@ -1,3 +1,5 @@
 build
 .ninja_*
 .build.deps
+/coverage
+.coverage
