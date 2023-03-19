@@ -91,13 +91,15 @@ class Env:
         return out
 
     def strip(self, gen, out, input):
+        bin = BuildPath.new(self, out)
         edge = BuildEdge(
             'strip',
-            outs = [out],
+            outs = [bin],
             ins = [SourcePath.new(self, input)],
+            vars = { 'strip' : self['STRIP'] }
         )
         gen.add_build(edge)
-        return out
+        return bin
 
     def cpp(self, gen, out, ins):
         flags = ' '.join(self['CPPFLAGS'])
