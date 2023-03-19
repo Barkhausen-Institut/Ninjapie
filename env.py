@@ -50,15 +50,25 @@ class Env:
         env.vars = copy.deepcopy(self.vars)
         return env
 
-    def __getitem__(self, key):
-        return self.vars[key]
+    def __getitem__(self, var):
+        return self.vars[var]
 
-    def __setitem__(self, key, value):
-        self.vars[key] = value
+    def __setitem__(self, var, value):
+        self.vars[var] = value
 
-    def remove_flag(self, flags, name):
-        if name in self.vars[flags]:
-            self.vars[flags].remove(name)
+    def add_flag(self, var, flag):
+        self.add_flags(var, [flag])
+
+    def add_flags(self, var, flags):
+        self.vars[var] += flags
+
+    def remove_flag(self, var, flag):
+        self.remove_flags(var, [flag])
+
+    def remove_flags(self, var, flags):
+        for f in flags:
+            if f in self.vars[var]:
+                self.vars[var].remove(f)
 
     def sub_build(self, gen, dir):
         old_cwd = self.cwd.path
