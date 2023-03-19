@@ -1,10 +1,10 @@
 import os
 
 class SourcePath(str):
-    def __init__(self, path):
+    def __init__(self, path: str):
         self.path = path
 
-    def new(env, path):
+    def new(env, path: str):
         if isinstance(path, SourcePath):
             return SourcePath(path.path)
         elif isinstance(path, BuildPath):
@@ -12,16 +12,16 @@ class SourcePath(str):
         else:
             return SourcePath(env.cwd.path + '/' + path)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.path
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.path)
 
 class BuildPath(str):
-    def __init__(self, path):
+    def __init__(self, path: str):
         self.path = path
 
-    def new(env, path):
+    def new(env, path: str):
         if isinstance(path, BuildPath):
             return BuildPath(path.path)
         elif isinstance(path, SourcePath):
@@ -29,7 +29,7 @@ class BuildPath(str):
         else:
             return BuildPath(env['BUILDDIR'] + '/' + env.cwd.path + '/' + path)
 
-    def with_ending(env, path, ending):
+    def with_ending(env, path: str, ending: str):
         (root, ext) = os.path.splitext(path)
         if isinstance(path, BuildPath):
             return BuildPath(root + ending)
@@ -38,7 +38,7 @@ class BuildPath(str):
         else:
             return BuildPath.new(env, root + ending)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.path
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.path)

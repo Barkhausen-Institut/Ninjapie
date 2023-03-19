@@ -3,7 +3,8 @@ import re
 from glob import glob
 
 class Rule:
-    def __init__(self, cmd, desc, deps = '', depfile = '', generator = '', pool = '', restat = False):
+    def __init__(self, cmd: str, desc: str, deps: str = '', depfile: str = '',
+                 generator: str = '', pool: str = '', restat: bool = False):
         assert cmd != '' and desc != ''
         self.cmd = cmd
         self.desc = desc
@@ -14,7 +15,7 @@ class Rule:
         self.restat = restat
         self.refs = 0
 
-    def _write_to_file(self, name, file):
+    def _write_to_file(self, name: str, file):
         file.write('rule %s\n' % name)
         file.write('  command = %s\n' % self.cmd)
         file.write('  description = %s\n' % self.desc)
@@ -30,7 +31,8 @@ class Rule:
             file.write('  restat = 1\n')
 
 class BuildEdge:
-    def __init__(self, rule, outs, ins, deps = [], vars = {}, pre_deps = [], lib_path = []):
+    def __init__(self, rule: str, outs: list[str], ins: list[str], deps: list[str] = [],
+                 vars: dict[str, str] = {}, pre_deps: list[str] = [], lib_path: list[str] = []):
         self.rule = rule
         self.outs = outs
         self.ins = ins
@@ -40,7 +42,7 @@ class BuildEdge:
         self.lib_path = lib_path
         self.vars = vars
 
-    def _write_to_file(self, defaults, file):
+    def _write_to_file(self, defaults: dict[str, str], file):
         file.write('build %s: %s %s' % (' '.join(self.outs), self.rule, ' '.join(self.ins)))
         if len(self.deps) > 0:
             file.write(' | %s' % (' '.join(self.deps)))
@@ -101,11 +103,11 @@ class Generator:
             restat = True,
         ))
 
-    def add_rule(self, name, rule):
+    def add_rule(self, name: str, rule: str):
         assert name not in self.rules
         self.rules[name] = rule
 
-    def add_build(self, edge):
+    def add_build(self, edge: BuildEdge):
         assert edge.rule in self.rules
         self.rules[edge.rule].refs += 1
         self.build_edges.append(edge)
@@ -183,14 +185,14 @@ class Generator:
                     c += 1
             cmds.write('\n]\n')
 
-    def _get_clang_flags(self, bedge):
+    def _get_clang_flags(self, bedge: BuildEdge) -> str:
         flags = 'ccflags' if bedge.rule == 'cc' else 'cxxflags'
         flag_str = bedge.vars[flags].replace('"', '\\"')
         flag_str = 'clang ' + flag_str if bedge.rule == 'cc' else 'clang++ ' + flag_str
         # remove all machine specific flags, because clang does not support all ISAs, etc.
         return re.sub(r'\s+-m\S+', '', flag_str)
 
-    def _determine_defaults(self):
+    def _determine_defaults(self) -> dict[str, str]:
         # first count the number of times for each value and each variable
         vars = {}
         for b in self.build_edges:
@@ -230,7 +232,7 @@ class Generator:
                             b.deps.append(libs[p][stname])
                             break
 
-    def _collect_libs(self):
+    def _collect_libs(self) -> dict[str, dict[str, str]]:
         libs = {}
         for b in self.build_edges:
             for o in b.outs:

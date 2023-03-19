@@ -4,10 +4,10 @@ import importlib
 import os
 
 from path import BuildPath, SourcePath
-from generator import BuildEdge
+from generator import BuildEdge, Generator
 
 class Location:
-    def __init__(self, path):
+    def __init__(self, path: str):
         self.path = path
 
 class Env:
@@ -49,27 +49,27 @@ class Env:
         env.vars = copy.deepcopy(self.vars)
         return env
 
-    def __getitem__(self, var):
+    def __getitem__(self, var: str):
         return self.vars[var]
 
-    def __setitem__(self, var, value):
+    def __setitem__(self, var: str, value):
         self.vars[var] = value
 
-    def add_flag(self, var, flag):
+    def add_flag(self, var: str, flag: str):
         self.add_flags(var, [flag])
 
-    def add_flags(self, var, flags):
+    def add_flags(self, var: str, flags: list[str]):
         self.vars[var] += flags
 
-    def remove_flag(self, var, flag):
+    def remove_flag(self, var: str, flag: str):
         self.remove_flags(var, [flag])
 
-    def remove_flags(self, var, flags):
+    def remove_flags(self, var: str, flags: list[str]):
         for f in flags:
             if f in self.vars[var]:
                 self.vars[var].remove(f)
 
-    def sub_build(self, gen, dir):
+    def sub_build(self, gen: Generator, dir: str):
         old_cwd = self.cwd.path
         self.cwd.path += '/' + dir
 
@@ -79,14 +79,14 @@ class Env:
 
         self.cwd.path = old_cwd
 
-    def glob(self, pattern, recursive=False):
+    def glob(self, pattern: str, recursive: bool=False) -> list[SourcePath]:
         files = glob(self.cwd.path + '/' + pattern, recursive=recursive)
         return [SourcePath(f) for f in files]
 
-    def install(self, gen, outdir, input, flags = ''):
+    def install(self, gen: Generator, outdir: str, input: str, flags: str = '') -> str:
         return self.install_as(gen, outdir + '/' + os.path.basename(input), input, flags)
 
-    def install_as(self, gen, out, input, flags = ''):
+    def install_as(self, gen: Generator, out: str, input: str, flags: str = '') -> str:
         edge = BuildEdge(
             'install',
             outs = [out],
@@ -98,7 +98,7 @@ class Env:
         gen.add_build(edge)
         return out
 
-    def strip(self, gen, out, input):
+    def strip(self, gen: Generator, out: str, input: str) -> BuildPath:
         bin = BuildPath.new(self, out)
         edge = BuildEdge(
             'strip',
@@ -111,7 +111,7 @@ class Env:
         gen.add_build(edge)
         return bin
 
-    def cpp(self, gen, out, ins):
+    def cpp(self, gen: Generator, out: str, ins: list[str]) -> BuildPath:
         flags = ' '.join(self['CPPFLAGS'])
         flags += ' ' + ' '.join(['-I' + i for i in self['CPPPATH']])
 
@@ -128,13 +128,16 @@ class Env:
         gen.add_build(edge)
         return bin
 
-    def asm(self, gen, out, ins):
-        return self.cc(gen, out, ins, flags = self['ASFLAGS'])
+    def asm(self, gen: Generator, out: str, ins: list[str]) -> BuildPath:
+        flags = ' '.join(self['ASFLAGS'])
+        return self._cc(gen, out, ins, flags)
 
-    def cc(self, gen, out, ins, flags = []):
-        flags = ' '.join(self['CFLAGS'] + self['CPPFLAGS'] + flags)
+    def cc(self, gen: Generator, out: str, ins: list[str]) -> BuildPath:
+        flags = ' '.join(self['CFLAGS'] + self['CPPFLAGS'])
         flags += ' ' + ' '.join(['-I' + i for i in self['CPPPATH']])
+        return self._cc(gen, out, ins, flags)
 
+    def _cc(self, gen: Generator, out: str, ins: list[str], flags: str) -> BuildPath:
         obj = BuildPath.new(self, out)
         edge = BuildEdge(
             'cc',
@@ -148,7 +151,7 @@ class Env:
         gen.add_build(edge)
         return obj
 
-    def cxx(self, gen, out, ins):
+    def cxx(self, gen: Generator, out: str, ins: list[str]) -> BuildPath:
         flags = ' '.join(self['CXXFLAGS'] + self['CPPFLAGS'])
         flags += ' ' + ' '.join(['-I' + i for i in self['CPPPATH']])
 
@@ -165,7 +168,7 @@ class Env:
         gen.add_build(edge)
         return obj
 
-    def objs(self, gen, ins):
+    def objs(self, gen: Generator, ins: list[str]) -> list[BuildPath]:
         objs = []
         for i in ins:
             if i.endswith('.S') or i.endswith('.s'):
@@ -178,7 +181,7 @@ class Env:
                 objs.append(BuildPath.new(self, i))
         return objs
 
-    def static_lib(self, gen, out, ins, install = True):
+    def static_lib(self, gen: Generator, out: str, ins: list[str], install: bool = True) -> BuildPath:
         flags = ' '.join(self['ARFLAGS'])
         lib = BuildPath.new(self, 'lib' + out + '.a')
         edge = BuildEdge(
@@ -197,7 +200,7 @@ class Env:
             self.install(gen, self['LIBDIR'], lib)
         return lib
 
-    def shared_lib(self, gen, out, ins, install = True):
+    def shared_lib(self, gen: Generator, out: str, ins: list[str], install: bool = True) -> BuildPath:
         flags = ' '.join(self['SHLINKFLAGS'])
         lib = BuildPath.new(self, 'lib' + out + '.so')
         edge = BuildEdge(
@@ -215,13 +218,16 @@ class Env:
             self.install(gen, self['LIBDIR'], lib)
         return lib
 
-    def c_exe(self, gen, out, ins, libs = [], deps = []):
+    def c_exe(self, gen: Generator, out: str, ins: list[str],
+              libs: list[str] = [], deps: list[str] = []) -> BuildPath:
         return self._c_cxx_exe(gen, out, ins, libs, deps, self['CC'])
 
-    def cxx_exe(self, gen, out, ins, libs = [], deps = []):
+    def cxx_exe(self, gen: Generator, out: str, ins: list[str],
+                libs: list[str] = [], deps: list[str] = []) -> BuildPath:
         return self._c_cxx_exe(gen, out, ins, libs, deps, self['CXX'])
 
-    def _c_cxx_exe(self, gen, out, ins, libs, deps, linker):
+    def _c_cxx_exe(self, gen: Generator, out: str, ins: list[str],
+                   libs: list[str], deps: list[str], linker: str) -> BuildPath:
         flags = ''
         if len(libs) > 0:
             flags += ' '.join(self['LINKFLAGS'])
@@ -246,7 +252,7 @@ class Env:
         gen.add_build(edge)
         return bin
 
-    def cargo(self, gen, out, cmd = 'build', deps = []):
+    def cargo(self, gen: Generator, out: str, cmd: str = 'build', deps: list[str] = []) -> BuildPath:
         bin = BuildPath(self['RUSTBINS'] + '/' + out)
         deps += glob(self.cwd.path + '/**/*.rs', recursive=True)
         deps += [SourcePath.new(self, 'Cargo.toml')]
