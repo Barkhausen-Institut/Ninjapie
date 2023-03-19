@@ -12,6 +12,7 @@ class Rule:
         self.generator = generator
         self.pool = pool
         self.restat = restat
+        self.refs = 0
 
     def _write_to_file(self, name, file):
         file.write('rule %s\n' % name)
@@ -111,6 +112,7 @@ class Generator:
 
     def add_build(self, edge):
         assert edge.rule in self.rules
+        self.rules[edge.rule].refs += 1
         self.build_edges.append(edge)
 
     def write_to_file(self, env):
@@ -147,7 +149,8 @@ class Generator:
             file.write('\n')
 
             for n, r in self.rules.items():
-                r._write_to_file(n, file)
+                if r.refs > 0:
+                    r._write_to_file(n, file)
             file.write('\n')
 
             # use a separate pool for the build.ninja regeneration to run that alone
