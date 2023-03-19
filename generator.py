@@ -110,6 +110,7 @@ class Generator:
         self.rules[name] = rule
 
     def add_build(self, edge):
+        assert edge.rule in self.rules
         self.build_edges.append(edge)
 
     def write_to_file(self, env):
