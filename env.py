@@ -18,29 +18,31 @@ class Env:
         self.vars = {}
 
         # default tools
-        self.vars['CXX']        = 'g++'
-        self.vars['CPP']        = 'cpp'
-        self.vars['AS']         = 'gcc'
-        self.vars['CC']         = 'gcc'
-        self.vars['AR']         = 'gcc-ar'
-        self.vars['RANLIB']     = 'gcc-ranlib'
-        self.vars['STRIP']      = 'strip'
+        self.vars['CXX']         = 'g++'
+        self.vars['CPP']         = 'cpp'
+        self.vars['AS']          = 'gcc'
+        self.vars['CC']          = 'gcc'
+        self.vars['AR']          = 'gcc-ar'
+        self.vars['SHLINK']      = 'gcc'
+        self.vars['RANLIB']      = 'gcc-ranlib'
+        self.vars['STRIP']       = 'strip'
 
         # default flags
-        self.vars['ASFLAGS']    = []
-        self.vars['CFLAGS']     = []
-        self.vars['CPPFLAGS']   = []
-        self.vars['CXXFLAGS']   = []
-        self.vars['LINKFLAGS']  = []
-        self.vars['CRGFLAGS']   = []
-        self.vars['ARFLAGS']    = ['rc']
+        self.vars['ASFLAGS']     = []
+        self.vars['CFLAGS']      = []
+        self.vars['CPPFLAGS']    = []
+        self.vars['CXXFLAGS']    = []
+        self.vars['LINKFLAGS']   = []
+        self.vars['SHLINKFLAGS'] = []
+        self.vars['CRGFLAGS']    = []
+        self.vars['ARFLAGS']     = ['rc']
 
         # default paths
-        self.vars['LIBDIR']     = 'build'
-        self.vars['BUILDDIR']   = 'build'
-        self.vars['RUSTBINS']   = 'build'
-        self.vars['CPPPATH']    = []
-        self.vars['LIBPATH']    = [self.vars['LIBDIR']]
+        self.vars['LIBDIR']      = 'build'
+        self.vars['BUILDDIR']    = 'build'
+        self.vars['RUSTBINS']    = 'build'
+        self.vars['CPPPATH']     = []
+        self.vars['LIBPATH']     = [self.vars['LIBDIR']]
 
     def __getitem__(self, key):
         return self.vars[key]
@@ -157,6 +159,20 @@ class Env:
             outs = [lib],
             ins = self.objs(gen, ins),
             vars = { 'ar' : self['AR'], 'ranlib' : self['RANLIB'], 'arflags' : flags }
+        )
+        gen.add_build(edge)
+        if install:
+            self.install(gen, self['LIBDIR'], lib)
+        return lib
+
+    def shared_lib(self, gen, out, ins, install = True):
+        flags = ' '.join(self['SHLINKFLAGS'])
+        lib = BuildPath.new(self, out + '.so')
+        edge = BuildEdge(
+            'shlink',
+            outs = [lib],
+            ins = self.objs(gen, ins),
+            vars = { 'shlink' : self['SHLINK'], 'shlinkflags' : flags }
         )
         gen.add_build(edge)
         if install:

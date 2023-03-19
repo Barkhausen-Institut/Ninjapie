@@ -69,6 +69,10 @@ class Generator:
             cmd = '$link -o $out $in $linkflags',
             desc = 'LINK $out'
         ))
+        self.add_rule('shlink', Rule(
+            cmd = '$shlink -shared -o $out $in $shlinkflags',
+            desc = 'SHLINK $out'
+        ))
         self.add_rule('cc', Rule(
             cmd = '$cc -MD -MF $out.d $ccflags -c $in -o $out',
             deps = 'gcc',
@@ -190,17 +194,22 @@ class Generator:
         libs = self._collect_libs()
         for b in self.build_edges:
             for d in b.pre_deps:
-                name = 'lib' + d + '.a'
+                stname = 'lib' + d + '.a'
+                shname = 'lib' + d + '.so'
                 for p in b.lib_path:
-                    if p in libs and name in libs[p]:
-                        b.deps.append(libs[p][name])
-                        break
+                    if p in libs:
+                        if shname in libs[p]:
+                            b.deps.append(libs[p][shname])
+                            break
+                        elif stname in libs[p]:
+                            b.deps.append(libs[p][stname])
+                            break
 
     def _collect_libs(self):
         libs = {}
         for b in self.build_edges:
             for o in b.outs:
-                if o.endswith('.a'):
+                if o.endswith('.a') or o.endswith('.so'):
                     dir = os.path.dirname(o)
                     if not dir in libs:
                         libs[dir] = {}
