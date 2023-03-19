@@ -44,6 +44,12 @@ class Env:
         self.vars['CPPPATH']     = []
         self.vars['LIBPATH']     = [self.vars['LIBDIR']]
 
+    def clone(self):
+        env = type(self)()
+        env.cwd = self.cwd
+        env.vars = copy.deepcopy(self.vars)
+        return env
+
     def __getitem__(self, key):
         return self.vars[key]
 
