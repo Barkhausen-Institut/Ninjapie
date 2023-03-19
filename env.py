@@ -2,7 +2,6 @@ import copy
 from glob import glob
 import importlib
 import os
-import subprocess
 
 from path import BuildPath, SourcePath
 from generator import BuildEdge
@@ -79,9 +78,6 @@ class Env:
         b.build(gen, self)
 
         self.cwd.path = old_cwd
-
-    def try_execute(self, cmd):
-        return subprocess.getstatusoutput(cmd)[0] == 0
 
     def glob(self, pattern, recursive=False):
         files = glob(self.cwd.path + '/' + pattern, recursive=recursive)
