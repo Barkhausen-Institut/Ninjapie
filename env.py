@@ -128,6 +128,9 @@ class Env:
         gen.add_build(edge)
         return bin
 
+    def asm(self, gen, out, ins):
+        return self.cc(gen, out, ins, flags = self['ASFLAGS'])
+
     def cc(self, gen, out, ins, flags = []):
         flags = ' '.join(self['CFLAGS'] + self['CPPFLAGS'] + flags)
         flags += ' ' + ' '.join(['-I' + i for i in self['CPPPATH']])
@@ -144,9 +147,6 @@ class Env:
         )
         gen.add_build(edge)
         return obj
-
-    def asm(self, gen, out, ins):
-        return self.cc(gen, out, ins, flags = self['ASFLAGS'])
 
     def cxx(self, gen, out, ins):
         flags = ' '.join(self['CXXFLAGS'] + self['CPPFLAGS'])
