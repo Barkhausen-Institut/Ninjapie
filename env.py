@@ -153,7 +153,7 @@ class Env:
 
     def static_lib(self, gen, out, ins, install = True):
         flags = ' '.join(self['ARFLAGS'])
-        lib = BuildPath.new(self, out + '.a')
+        lib = BuildPath.new(self, 'lib' + out + '.a')
         edge = BuildEdge(
             'ar',
             outs = [lib],
@@ -167,7 +167,7 @@ class Env:
 
     def shared_lib(self, gen, out, ins, install = True):
         flags = ' '.join(self['SHLINKFLAGS'])
-        lib = BuildPath.new(self, out + '.so')
+        lib = BuildPath.new(self, 'lib' + out + '.so')
         edge = BuildEdge(
             'shlink',
             outs = [lib],
