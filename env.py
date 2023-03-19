@@ -91,6 +91,20 @@ class Env:
         gen.add_build(edge)
         return out
 
+    def cpp(self, gen, out, ins):
+        flags = ' '.join(self['CPPFLAGS'])
+        flags += ' ' + ' '.join(['-I' + i for i in self['CPPPATH']])
+
+        bin = BuildPath.new(self, out)
+        edge = BuildEdge(
+            'cpp',
+            outs = [bin],
+            ins = [SourcePath.new(self, i) for i in ins],
+            vars = { 'cpp' : self['CPP'], 'cppflags' : flags }
+        )
+        gen.add_build(edge)
+        return bin
+
     def cc(self, gen, out, ins, flags = []):
         flags = ' '.join(self['CFLAGS'] + self['CPPFLAGS'] + flags)
         flags += ' ' + ' '.join(['-I' + i for i in self['CPPPATH']])
@@ -135,6 +149,20 @@ class Env:
                 objs.append(BuildPath.new(self, i))
         return objs
 
+    def static_lib(self, gen, out, ins, install = True):
+        flags = ' '.join(self['ARFLAGS'])
+        lib = BuildPath.new(self, out + '.a')
+        edge = BuildEdge(
+            'ar',
+            outs = [lib],
+            ins = self.objs(gen, ins),
+            vars = { 'ar' : self['AR'], 'ranlib' : self['RANLIB'], 'arflags' : flags }
+        )
+        gen.add_build(edge)
+        if install:
+            self.install(gen, self['LIBDIR'], lib)
+        return lib
+
     def c_exe(self, gen, out, ins, libs = [], deps = []):
         return self._c_cxx_exe(gen, out, ins, libs, deps, self['CC'])
 
@@ -160,34 +188,6 @@ class Env:
         )
         gen.add_build(edge)
         return bin
-
-    def cpp(self, gen, out, ins):
-        flags = ' '.join(self['CPPFLAGS'])
-        flags += ' ' + ' '.join(['-I' + i for i in self['CPPPATH']])
-
-        bin = BuildPath.new(self, out)
-        edge = BuildEdge(
-            'cpp',
-            outs = [bin],
-            ins = [SourcePath.new(self, i) for i in ins],
-            vars = { 'cpp' : self['CPP'], 'cppflags' : flags }
-        )
-        gen.add_build(edge)
-        return bin
-
-    def static_lib(self, gen, out, ins, install = True):
-        flags = ' '.join(self['ARFLAGS'])
-        lib = BuildPath.new(self, out + '.a')
-        edge = BuildEdge(
-            'ar',
-            outs = [lib],
-            ins = self.objs(gen, ins),
-            vars = { 'ar' : self['AR'], 'ranlib' : self['RANLIB'], 'arflags' : flags }
-        )
-        gen.add_build(edge)
-        if install:
-            self.install(gen, self['LIBDIR'], lib)
-        return lib
 
     def cargo(self, gen, out, cmd = 'build', deps = []):
         bin = BuildPath(self['RUSTBINS'] + '/' + out)
