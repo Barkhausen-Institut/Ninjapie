@@ -59,6 +59,7 @@ class Env:
         self.add_flags(var, [flag])
 
     def add_flags(self, var: str, flags: list[str]):
+        assert isinstance(self.vars[var], list)
         self.vars[var] += flags
 
     def remove_flag(self, var: str, flag: str):
@@ -66,6 +67,7 @@ class Env:
 
     def remove_flags(self, var: str, flags: list[str]):
         for f in flags:
+            assert isinstance(self.vars[var], list)
             if f in self.vars[var]:
                 self.vars[var].remove(f)
 
