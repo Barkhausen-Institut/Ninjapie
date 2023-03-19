@@ -3,6 +3,10 @@ from ninjapie import Generator, Env
 gen = Generator()
 env = Env()
 
-env.c_exe(gen, out = 'hello', ins = ['hello.S'])
+asm_env = env.clone()
+asm_env['CPPFLAGS'] += ['-DRETURN_0']
+asm = asm_env.cpp(gen, out = 'hello-cpp.S', ins = ['hello.S'])
+
+env.c_exe(gen, out = 'hello', ins = [asm])
 
 gen.write_to_file(env)
