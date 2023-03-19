@@ -15,6 +15,7 @@ while [ $# -gt 0 ]; do
         shift
     elif [ "$1" = "-c" ]; then
         rm -rf "$build"
+        exit
     elif [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "-?" ]; then
         usage "$0"
     else
