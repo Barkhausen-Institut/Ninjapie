@@ -36,10 +36,11 @@ class Env:
         self.vars['ARFLAGS']    = ['rc']
 
         # default paths
-        self.vars['CPPPATH']    = []
-        self.vars['LIBPATH']    = []
+        self.vars['LIBDIR']     = 'build'
         self.vars['BUILDDIR']   = 'build'
         self.vars['RUSTBINS']   = 'build'
+        self.vars['CPPPATH']    = []
+        self.vars['LIBPATH']    = [self.vars['LIBDIR']]
 
     def __getitem__(self, key):
         return self.vars[key]
@@ -135,12 +136,12 @@ class Env:
         return objs
 
     def c_exe(self, gen, out, ins, libs = [], deps = []):
-        return self._c_cxx_exe(gen, out, ins, linker = self['CC'], libs = libs, deps = deps)
+        return self._c_cxx_exe(gen, out, ins, libs, deps, self['CC'])
 
     def cxx_exe(self, gen, out, ins, libs = [], deps = []):
-        return self._c_cxx_exe(gen, out, ins, linker = self['CXX'], libs = libs, deps = deps)
+        return self._c_cxx_exe(gen, out, ins, libs, deps, self['CXX'])
 
-    def _c_cxx_exe(self, gen, out, ins, linker, libs = [], deps = []):
+    def _c_cxx_exe(self, gen, out, ins, libs, deps, linker):
         flags = ' '.join(self['LINKFLAGS'])
         flags += ' ' + ' '.join(['-L' + d for d in self['LIBPATH']])
         flags += ' -Wl,--start-group'
@@ -174,7 +175,7 @@ class Env:
         gen.add_build(edge)
         return bin
 
-    def static_lib(self, gen, out, ins):
+    def static_lib(self, gen, out, ins, install = True):
         flags = ' '.join(self['ARFLAGS'])
         lib = BuildPath.new(self, out + '.a')
         edge = BuildEdge(
@@ -184,6 +185,8 @@ class Env:
             vars = { 'ar' : self['AR'], 'ranlib' : self['RANLIB'], 'arflags' : flags }
         )
         gen.add_build(edge)
+        if install:
+            self.install(gen, self['LIBDIR'], lib)
         return lib
 
     def cargo(self, gen, out, cmd = 'build', deps = []):
