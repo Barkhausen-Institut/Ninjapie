@@ -91,7 +91,9 @@ class Env:
             'install',
             outs = [out],
             ins = [SourcePath.new(self, input)],
-            vars = { 'instflags' : flags }
+            vars = {
+                'instflags' : flags
+            }
         )
         gen.add_build(edge)
         return out
@@ -102,7 +104,9 @@ class Env:
             'strip',
             outs = [bin],
             ins = [SourcePath.new(self, input)],
-            vars = { 'strip' : self['STRIP'] }
+            vars = {
+                'strip' : self['STRIP']
+            }
         )
         gen.add_build(edge)
         return bin
@@ -116,7 +120,10 @@ class Env:
             'cpp',
             outs = [bin],
             ins = [SourcePath.new(self, i) for i in ins],
-            vars = { 'cpp' : self['CPP'], 'cppflags' : flags }
+            vars = {
+                'cpp' : self['CPP'],
+                'cppflags' : flags
+            }
         )
         gen.add_build(edge)
         return bin
@@ -130,7 +137,10 @@ class Env:
             'cc',
             outs = [obj],
             ins = [SourcePath.new(self, i) for i in ins],
-            vars = { 'cc' : self['CC'], 'ccflags' : flags }
+            vars = {
+                'cc' : self['CC'],
+                'ccflags' : flags
+            }
         )
         gen.add_build(edge)
         return obj
@@ -147,7 +157,10 @@ class Env:
             'cxx',
             outs = [obj],
             ins = [SourcePath.new(self, i) for i in ins],
-            vars = { 'cxx' : self['CXX'], 'cxxflags' : flags }
+            vars = {
+                'cxx' : self['CXX'],
+                'cxxflags' : flags
+            }
         )
         gen.add_build(edge)
         return obj
@@ -172,7 +185,11 @@ class Env:
             'ar',
             outs = [lib],
             ins = self.objs(gen, ins),
-            vars = { 'ar' : self['AR'], 'ranlib' : self['RANLIB'], 'arflags' : flags }
+            vars = {
+                'ar' : self['AR'],
+                'ranlib' : self['RANLIB'],
+                'arflags' : flags
+            }
         )
         gen.add_build(edge)
         # don't install it if the library is already in LIBDIR
@@ -187,7 +204,10 @@ class Env:
             'shlink',
             outs = [lib],
             ins = self.objs(gen, ins),
-            vars = { 'shlink' : self['SHLINK'], 'shlinkflags' : flags }
+            vars = {
+                'shlink' : self['SHLINK'],
+                'shlinkflags' : flags
+            }
         )
         gen.add_build(edge)
         # don't install it if the library is already in LIBDIR
@@ -218,7 +238,10 @@ class Env:
             deps = deps,
             pre_deps = libs,
             lib_path = self['LIBPATH'],
-            vars = { 'link' : linker, 'linkflags' : flags }
+            vars = {
+                'link' : linker,
+                'linkflags' : flags
+            }
         )
         gen.add_build(edge)
         return bin
