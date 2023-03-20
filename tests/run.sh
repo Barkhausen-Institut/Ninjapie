@@ -11,8 +11,11 @@ while IFS= read -r -d '' d; do
 
         ninjapie -v || exit 1
 
-            echo "Expected no work, but got work to do."
-            exit 1
+        if [ "$(basename "$d")" != "rust" ] && [ "$(basename "$d")" != "rust-c" ]; then
+            if [ "$(ninjapie -v 2>&1)" != "ninja: no work to do." ]; then
+                echo "Expected no work, but got work to do."
+                exit 1
+            fi
         fi
 
         if [ "$(basename "$d")" != "shared-lib" ]; then

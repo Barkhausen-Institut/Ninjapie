@@ -254,10 +254,19 @@ class Env:
         gen.add_build(edge)
         return bin
 
-    def cargo(self, gen: Generator, out: str, cmd: str = 'build', deps: list[str] = []) -> BuildPath:
-        bin = BuildPath(self['RUSTBINS'] + '/' + out)
-        deps += glob(self.cwd.path + '/**/*.rs', recursive=True)
-        deps += [SourcePath.new(self, 'Cargo.toml')]
+    def rust_lib(self, gen: Generator, out: str, deps: list[str] = []) -> BuildPath:
+        return self._rust(gen, 'lib' + out + '.a', deps, self['LIBDIR'])
+
+    def rust_exe(self, gen: Generator, out: str, deps: list[str] = []) -> BuildPath:
+        return self._rust(gen, out, deps, self['BUILDDIR'])
+
+    def _rust(self, gen: Generator, out: str, deps: list[str], installDir) -> BuildPath:
+        # determine destination based on flags
+        btype = 'release' if '--release' in self['CRGFLAGS'] else 'debug'
+        bin = BuildPath(self['RUSTBINS'] + '/' + btype + '/' + out)
+        # make sure that cargo puts it there
+        env = 'CARGO_TARGET_DIR="' + self['RUSTBINS'] + '"'
+
         edge = BuildEdge(
             'cargo',
             outs = [bin],
@@ -265,8 +274,13 @@ class Env:
             deps = deps,
             vars = {
                 'dir' : self.cwd.path,
-                'cargoflags' : cmd + ' ' + ' '.join(self['CRGFLAGS']),
+                'cargoflags' : 'build ' + ' '.join(self['CRGFLAGS']),
+                'env' : env
             }
         )
         gen.add_build(edge)
-        return bin
+
+        # don't install it if the binary is already in installDir
+        if os.path.dirname(os.path.abspath(bin)) != os.path.abspath(installDir):
+            self.install(gen, installDir, bin)
+        return BuildPath(installDir + '/' + out)
