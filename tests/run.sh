@@ -13,18 +13,24 @@ while IFS= read -r -d '' d; do
 
         ninjapie -v || exit 1
 
-        if [ "$(basename "$d")" != "rust" ] && [ "$(basename "$d")" != "rust-c" ]; then
-            if [ "$(ninjapie -v 2>&1)" != "ninja: no work to do." ]; then
-                echo "Expected no work, but got work to do."
-                exit 1
-            fi
-        fi
+        case "$(basename "$d")" in
+            rust|rust-c) ;;
+            *)
+                if [ "$(ninjapie -v 2>&1)" != "ninja: no work to do." ]; then
+                    echo "Expected no work, but got work to do."
+                    exit 1
+                fi
+                ;;
+        esac
 
-        if [ "$(basename "$d")" != "shared-lib" ]; then
-            if ! LD_LIBRARY_PATH=build:$LD_LIBRARY_PATH ./build/hello >/dev/null; then
-                exit 1
-            fi
-        fi
+        case "$(basename "$d")" in
+            shared-lib|latex) ;;
+            *)
+                if ! LD_LIBRARY_PATH=build:$LD_LIBRARY_PATH ./build/hello >/dev/null; then
+                    exit 1
+                fi
+                ;;
+        esac
     ); then
         success=$((success + 1))
         /bin/echo -e "\e[1mSUCCESS\e[0m"
