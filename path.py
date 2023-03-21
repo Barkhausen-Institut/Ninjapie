@@ -29,14 +29,14 @@ class BuildPath(str):
         else:
             return BuildPath(env['BUILDDIR'] + '/' + env.cwd.path + '/' + path)
 
-    def with_ending(env, path: str, ending: str):
-        (root, ext) = os.path.splitext(path)
+    def with_file_ext(env, path: str, ext: str):
+        (root, cur_ext) = os.path.splitext(path)
         if isinstance(path, BuildPath):
-            return BuildPath(root + ending)
+            return BuildPath(root + '.' + ext)
         elif isinstance(path, SourcePath):
-            return BuildPath.new(env, SourcePath(root + ending))
+            return BuildPath.new(env, SourcePath(root + '.' + ext))
         else:
-            return BuildPath.new(env, root + ending)
+            return BuildPath.new(env, root + '.' + ext)
 
     def __str__(self) -> str:
         return self.path

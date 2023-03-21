@@ -174,11 +174,11 @@ class Env:
         objs = []
         for i in ins:
             if i.endswith('.S') or i.endswith('.s'):
-                objs.append(self.asm(gen, BuildPath.with_ending(self, i, '.o'), [i]))
+                objs.append(self.asm(gen, BuildPath.with_file_ext(self, i, 'o'), [i]))
             elif i.endswith('.c'):
-                objs.append(self.cc(gen, BuildPath.with_ending(self, i, '.o'), [i]))
+                objs.append(self.cc(gen, BuildPath.with_file_ext(self, i, 'o'), [i]))
             elif i.endswith('.cc') or i.endswith('.cpp'):
-                objs.append(self.cxx(gen, BuildPath.with_ending(self, i, '.o'), [i]))
+                objs.append(self.cxx(gen, BuildPath.with_file_ext(self, i, 'o'), [i]))
             elif i.endswith('.o') or i.endswith('.a'):
                 objs.append(BuildPath.new(self, i))
         return objs
