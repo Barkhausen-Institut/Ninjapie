@@ -5,6 +5,8 @@ export PATH="$root:$PATH"
 
 export PYTHONDONTWRITEBYTECODE=1
 
+success=0
+failed=0
 dirs=()
 while IFS= read -r -d '' d; do
     echo "Generating coverage for \"$(basename "$d")\"..."
@@ -17,13 +19,24 @@ while IFS= read -r -d '' d; do
         coverage run build.py || exit 1
         ninja -f build/build.ninja -v || exit 1
     ); then
+        success=$((success + 1))
         /bin/echo -e "\e[1mSUCCESS\e[0m"
     else
+        failed=$((failed + 1))
         /bin/echo -e "\e[1mFAILED\e[0m"
     fi
 
     dirs=("${dirs[@]}" "$d/.coverage")
 done < <(find . -mindepth 1 -maxdepth 1 -type d -print0)
+
+printf "\nIn total: "
+if [ $failed -eq 0 ]; then
+    /bin/echo -n -e "\e[1;32m"
+else
+    /bin/echo -n -e "\e[1;31m"
+fi
+printf "%d of %d tests successful\n" $success $((success + failed))
+/bin/echo -e "\e[0m"
 
 coverage combine "${dirs[@]}"
 coverage html -d ../coverage
