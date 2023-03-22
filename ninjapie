@@ -34,7 +34,7 @@ export NPBUILD=$build
 
 # redo the configuration if any file was added/removed
 filesid="$build/.all-files.id"
-find . -type f -not -path "$build" > "$filesid.new"
+find . \( -path "./$build" -o -path "./.ninja*" \) -prune -o -type f -print > "$filesid.new"
 if [ ! -f "$build/build.ninja" ] || ! cmp "$filesid.new" "$filesid" 1>/dev/null 2>&1; then
     python -B build.py || exit 1
     mv "$filesid.new" "$filesid"
