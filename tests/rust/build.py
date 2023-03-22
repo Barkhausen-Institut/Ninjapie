@@ -4,7 +4,7 @@ gen = Generator()
 env = Env()
 
 env['CRGFLAGS'] += ['--release']
-bin = env.rust_exe(gen, out = 'hello')
-env.strip(gen, out = 'hello-stripped', input = bin)
+bin = env.rust_exe(gen, out='hello')
+env.strip(gen, out='hello-stripped', input=bin)
 
 gen.write_to_file(env)

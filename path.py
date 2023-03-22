@@ -1,5 +1,6 @@
 import os
 
+
 class SourcePath(str):
     def __init__(self, path: str):
         self.path = path
@@ -14,8 +15,10 @@ class SourcePath(str):
 
     def __str__(self) -> str:
         return self.path
+
     def __repr__(self) -> str:
         return repr(self.path)
+
 
 class BuildPath(str):
     def __init__(self, path: str):
@@ -40,5 +43,6 @@ class BuildPath(str):
 
     def __str__(self) -> str:
         return self.path
+
     def __repr__(self) -> str:
         return repr(self.path)

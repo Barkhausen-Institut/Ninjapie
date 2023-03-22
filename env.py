@@ -6,9 +6,11 @@ import os
 from path import BuildPath, SourcePath
 from generator import BuildEdge, Generator
 
+
 class Location:
     def __init__(self, path: str):
         self.path = path
+
 
 class Env:
     def __init__(self):
@@ -17,30 +19,30 @@ class Env:
         self.vars = {}
 
         # default tools
-        self.vars['CXX']         = 'g++'
-        self.vars['CPP']         = 'cpp'
-        self.vars['AS']          = 'gcc'
-        self.vars['CC']          = 'gcc'
-        self.vars['AR']          = 'gcc-ar'
-        self.vars['SHLINK']      = 'gcc'
-        self.vars['RANLIB']      = 'gcc-ranlib'
-        self.vars['STRIP']       = 'strip'
+        self.vars['CXX'] = 'g++'
+        self.vars['CPP'] = 'cpp'
+        self.vars['AS'] = 'gcc'
+        self.vars['CC'] = 'gcc'
+        self.vars['AR'] = 'gcc-ar'
+        self.vars['SHLINK'] = 'gcc'
+        self.vars['RANLIB'] = 'gcc-ranlib'
+        self.vars['STRIP'] = 'strip'
 
         # default flags
-        self.vars['ASFLAGS']     = []
-        self.vars['CFLAGS']      = []
-        self.vars['CPPFLAGS']    = []
-        self.vars['CXXFLAGS']    = []
-        self.vars['LINKFLAGS']   = []
+        self.vars['ASFLAGS'] = []
+        self.vars['CFLAGS'] = []
+        self.vars['CPPFLAGS'] = []
+        self.vars['CXXFLAGS'] = []
+        self.vars['LINKFLAGS'] = []
         self.vars['SHLINKFLAGS'] = []
-        self.vars['CRGFLAGS']    = []
-        self.vars['ARFLAGS']     = ['rc']
+        self.vars['CRGFLAGS'] = []
+        self.vars['ARFLAGS'] = ['rc']
 
         # default paths
-        self.vars['BUILDDIR']    = os.environ.get('NPBUILD')
-        self.vars['RUSTBINS']    = '.'
-        self.vars['CPPPATH']     = []
-        self.vars['LIBPATH']     = []
+        self.vars['BUILDDIR'] = os.environ.get('NPBUILD')
+        self.vars['RUSTBINS'] = '.'
+        self.vars['CPPPATH'] = []
+        self.vars['LIBPATH'] = []
 
     def clone(self):
         env = type(self)()
@@ -81,7 +83,7 @@ class Env:
 
         self.cwd.path = old_cwd
 
-    def glob(self, pattern: str, recursive: bool=False) -> list[SourcePath]:
+    def glob(self, pattern: str, recursive: bool = False) -> list[SourcePath]:
         files = glob(self.cwd.path + '/' + pattern, recursive=recursive)
         return [SourcePath(f) for f in files]
 
@@ -91,10 +93,10 @@ class Env:
     def install_as(self, gen: Generator, out: str, input: str, flags: str = '') -> str:
         edge = BuildEdge(
             'install',
-            outs = [out],
-            ins = [SourcePath.new(self, input)],
-            vars = {
-                'instflags' : flags
+            outs=[out],
+            ins=[SourcePath.new(self, input)],
+            vars={
+                'instflags': flags
             }
         )
         gen.add_build(edge)
@@ -104,10 +106,10 @@ class Env:
         bin = BuildPath.new(self, out)
         edge = BuildEdge(
             'strip',
-            outs = [bin],
-            ins = [SourcePath.new(self, input)],
-            vars = {
-                'strip' : self['STRIP']
+            outs=[bin],
+            ins=[SourcePath.new(self, input)],
+            vars={
+                'strip': self['STRIP']
             }
         )
         gen.add_build(edge)
@@ -120,11 +122,11 @@ class Env:
         bin = BuildPath.new(self, out)
         edge = BuildEdge(
             'cpp',
-            outs = [bin],
-            ins = [SourcePath.new(self, i) for i in ins],
-            vars = {
-                'cpp' : self['CPP'],
-                'cppflags' : flags
+            outs=[bin],
+            ins=[SourcePath.new(self, i) for i in ins],
+            vars={
+                'cpp': self['CPP'],
+                'cppflags': flags
             }
         )
         gen.add_build(edge)
@@ -143,11 +145,11 @@ class Env:
         obj = BuildPath.new(self, out)
         edge = BuildEdge(
             'cc',
-            outs = [obj],
-            ins = [SourcePath.new(self, i) for i in ins],
-            vars = {
-                'cc' : self['CC'],
-                'ccflags' : flags
+            outs=[obj],
+            ins=[SourcePath.new(self, i) for i in ins],
+            vars={
+                'cc': self['CC'],
+                'ccflags': flags
             }
         )
         gen.add_build(edge)
@@ -160,11 +162,11 @@ class Env:
         obj = BuildPath.new(self, out)
         edge = BuildEdge(
             'cxx',
-            outs = [obj],
-            ins = [SourcePath.new(self, i) for i in ins],
-            vars = {
-                'cxx' : self['CXX'],
-                'cxxflags' : flags
+            outs=[obj],
+            ins=[SourcePath.new(self, i) for i in ins],
+            vars={
+                'cxx': self['CXX'],
+                'cxxflags': flags
             }
         )
         gen.add_build(edge)
@@ -183,17 +185,18 @@ class Env:
                 objs.append(BuildPath.new(self, i))
         return objs
 
-    def static_lib(self, gen: Generator, out: str, ins: list[str], install: bool = True) -> BuildPath:
+    def static_lib(self, gen: Generator, out: str, ins: list[str],
+                   install: bool = True) -> BuildPath:
         flags = ' '.join(self['ARFLAGS'])
         lib = BuildPath.new(self, 'lib' + out + '.a')
         edge = BuildEdge(
             'ar',
-            outs = [lib],
-            ins = self.objs(gen, ins),
-            vars = {
-                'ar' : self['AR'],
-                'ranlib' : self['RANLIB'],
-                'arflags' : flags
+            outs=[lib],
+            ins=self.objs(gen, ins),
+            vars={
+                'ar': self['AR'],
+                'ranlib': self['RANLIB'],
+                'arflags': flags
             }
         )
         gen.add_build(edge)
@@ -202,16 +205,17 @@ class Env:
             self.install(gen, self['BUILDDIR'], lib)
         return lib
 
-    def shared_lib(self, gen: Generator, out: str, ins: list[str], install: bool = True) -> BuildPath:
+    def shared_lib(self, gen: Generator, out: str, ins: list[str],
+                   install: bool = True) -> BuildPath:
         flags = ' '.join(self['SHLINKFLAGS'])
         lib = BuildPath.new(self, 'lib' + out + '.so')
         edge = BuildEdge(
             'shlink',
-            outs = [lib],
-            ins = self.objs(gen, ins),
-            vars = {
-                'shlink' : self['SHLINK'],
-                'shlinkflags' : flags
+            outs=[lib],
+            ins=self.objs(gen, ins),
+            vars={
+                'shlink': self['SHLINK'],
+                'shlinkflags': flags
             }
         )
         gen.add_build(edge)
@@ -234,22 +238,22 @@ class Env:
         lib_path = [self['BUILDDIR']] + self['LIBPATH']
         if len(libs) > 0:
             flags += ' '.join(self['LINKFLAGS'])
-            flags += ' ' + ' '.join(['-L' + d for d in lib_path])
+            flags += ' ' + ' '.join(['-L' + dir for dir in lib_path])
             flags += ' -Wl,--start-group'
-            flags += ' ' + ' '.join(['-l' + l for l in libs])
+            flags += ' ' + ' '.join(['-l' + lib for lib in libs])
             flags += ' -Wl,--end-group'
 
         bin = BuildPath.new(self, out)
         edge = BuildEdge(
             'link',
-            outs = [bin],
-            ins = self.objs(gen, ins),
-            deps = deps,
-            pre_deps = libs,
-            lib_path = lib_path,
-            vars = {
-                'link' : linker,
-                'linkflags' : flags
+            outs=[bin],
+            ins=self.objs(gen, ins),
+            deps=deps,
+            pre_deps=libs,
+            lib_path=lib_path,
+            vars={
+                'link': linker,
+                'linkflags': flags
             }
         )
         gen.add_build(edge)
@@ -270,13 +274,13 @@ class Env:
 
         edge = BuildEdge(
             'cargo',
-            outs = [bin],
-            ins = [],
-            deps = deps,
-            vars = {
-                'dir' : self.cwd.path,
-                'cargoflags' : 'build ' + ' '.join(self['CRGFLAGS']),
-                'env' : env
+            outs=[bin],
+            ins=[],
+            deps=deps,
+            vars={
+                'dir': self.cwd.path,
+                'cargoflags': 'build ' + ' '.join(self['CRGFLAGS']),
+                'env': env
             }
         )
         gen.add_build(edge)
