@@ -13,7 +13,7 @@ while IFS= read -r -d '' d; do
 
     if (
         root=$(dirname "$(dirname "$(readlink -f "$0")")")
-        export PYTHONPATH="$root:$PYTHONPATH"
+        export PYTHONPATH="$root:$PYTHONPATH" NPBUILD=build
         cd "$d"
         rm -rf build && mkdir -p build
         coverage run build.py || exit 1

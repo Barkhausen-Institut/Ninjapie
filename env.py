@@ -37,11 +37,10 @@ class Env:
         self.vars['ARFLAGS']     = ['rc']
 
         # default paths
-        self.vars['LIBDIR']      = 'build'
-        self.vars['BUILDDIR']    = 'build'
-        self.vars['RUSTBINS']    = 'build'
+        self.vars['BUILDDIR']    = os.environ.get('NPBUILD')
+        self.vars['RUSTBINS']    = '.'
         self.vars['CPPPATH']     = []
-        self.vars['LIBPATH']     = [self.vars['LIBDIR']]
+        self.vars['LIBPATH']     = []
 
     def clone(self):
         env = type(self)()
@@ -53,6 +52,7 @@ class Env:
         return self.vars[var]
 
     def __setitem__(self, var: str, value):
+        assert var != 'BUILDDIR', "BUILDDIR can only be set via the NPBUILD environment variable"
         self.vars[var] = value
 
     def add_flag(self, var: str, flag: str):
@@ -197,9 +197,9 @@ class Env:
             }
         )
         gen.add_build(edge)
-        # don't install it if the library is already in LIBDIR
-        if install and os.path.dirname(os.path.abspath(lib)) != os.path.abspath(self['LIBDIR']):
-            self.install(gen, self['LIBDIR'], lib)
+        # don't install it if the library is already in BUILDDIR
+        if install and os.path.dirname(os.path.abspath(lib)) != os.path.abspath(self['BUILDDIR']):
+            self.install(gen, self['BUILDDIR'], lib)
         return lib
 
     def shared_lib(self, gen: Generator, out: str, ins: list[str], install: bool = True) -> BuildPath:
@@ -215,9 +215,9 @@ class Env:
             }
         )
         gen.add_build(edge)
-        # don't install it if the library is already in LIBDIR
-        if install and os.path.dirname(os.path.abspath(lib)) != os.path.abspath(self['LIBDIR']):
-            self.install(gen, self['LIBDIR'], lib)
+        # don't install it if the library is already in BUILDDIR
+        if install and os.path.dirname(os.path.abspath(lib)) != os.path.abspath(self['BUILDDIR']):
+            self.install(gen, self['BUILDDIR'], lib)
         return lib
 
     def c_exe(self, gen: Generator, out: str, ins: list[str],
@@ -231,9 +231,10 @@ class Env:
     def _c_cxx_exe(self, gen: Generator, out: str, ins: list[str],
                    libs: list[str], deps: list[str], linker: str) -> BuildPath:
         flags = ''
+        lib_path = [self['BUILDDIR']] + self['LIBPATH']
         if len(libs) > 0:
             flags += ' '.join(self['LINKFLAGS'])
-            flags += ' ' + ' '.join(['-L' + d for d in self['LIBPATH']])
+            flags += ' ' + ' '.join(['-L' + d for d in lib_path])
             flags += ' -Wl,--start-group'
             flags += ' ' + ' '.join(['-l' + l for l in libs])
             flags += ' -Wl,--end-group'
@@ -245,7 +246,7 @@ class Env:
             ins = self.objs(gen, ins),
             deps = deps,
             pre_deps = libs,
-            lib_path = self['LIBPATH'],
+            lib_path = lib_path,
             vars = {
                 'link' : linker,
                 'linkflags' : flags
@@ -255,7 +256,7 @@ class Env:
         return bin
 
     def rust_lib(self, gen: Generator, out: str, deps: list[str] = []) -> BuildPath:
-        return self._rust(gen, 'lib' + out + '.a', deps, self['LIBDIR'])
+        return self._rust(gen, 'lib' + out + '.a', deps, self['BUILDDIR'])
 
     def rust_exe(self, gen: Generator, out: str, deps: list[str] = []) -> BuildPath:
         return self._rust(gen, out, deps, self['BUILDDIR'])
@@ -263,9 +264,9 @@ class Env:
     def _rust(self, gen: Generator, out: str, deps: list[str], installDir) -> BuildPath:
         # determine destination based on flags
         btype = 'release' if '--release' in self['CRGFLAGS'] else 'debug'
-        bin = BuildPath(self['RUSTBINS'] + '/' + btype + '/' + out)
+        bin = BuildPath.new(self, self['RUSTBINS'] + '/' + btype + '/' + out)
         # make sure that cargo puts it there
-        env = 'CARGO_TARGET_DIR="' + self['RUSTBINS'] + '"'
+        env = 'CARGO_TARGET_DIR="' + self['BUILDDIR'] + '/' + self['RUSTBINS'] + '"'
 
         edge = BuildEdge(
             'cargo',

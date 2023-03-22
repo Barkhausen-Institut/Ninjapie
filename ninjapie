@@ -1,23 +1,23 @@
 #!/bin/sh
 
-build=build
+build=${NPBUILD:-build}
 
 usage() {
-    echo "$1 [-b <build-directory>] [-c] [<ninja-argument> ...]" >&2
-    echo "  -b <build-directory>: specifies the build directory (default: build)"
+    echo "$1 [-c] [--help|-h|-?] [--] [<ninja-argument> ...]" >&2
     echo "  -c:                   clean build directory"
+    echo "  --help|-h|-?:         print this help"
     exit
 }
 
 while [ $# -gt 0 ]; do
-    if [ "$1" = "-b" ]; then
-        build="$2"
-        shift
-    elif [ "$1" = "-c" ]; then
+    if [ "$1" = "-c" ]; then
         rm -rf "$build"
         exit
     elif [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "-?" ]; then
         usage "$0"
+    elif [ "$1" = "--" ]; then
+        shift
+        break
     else
         break
     fi
@@ -29,6 +29,8 @@ mkdir -p "$build"
 # add this directory to PYTHONPATH so that we can import ninjapie in the build.py files
 root=$(dirname "$(readlink -f "$0")")
 export PYTHONPATH="$root:$PYTHONPATH"
+
+export NPBUILD=$build
 
 # redo the configuration if any file was added/removed
 filesid="$build/.all-files.id"
