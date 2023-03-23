@@ -255,7 +255,7 @@ class Env:
             outs=[bin],
             ins=self.objs(gen, ins),
             deps=deps,
-            pre_deps=libs,
+            libs=libs,
             lib_path=lib_path,
             vars={
                 'link': linker,
