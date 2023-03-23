@@ -3,32 +3,32 @@ import os
 
 class SourcePath(str):
     def __init__(self, path: str):
-        self.path = path
+        self._path = path
 
     def new(env, path: str):
         if isinstance(path, SourcePath):
-            return SourcePath(path.path)
+            return SourcePath(path._path)
         elif isinstance(path, BuildPath):
-            return SourcePath(path.path)
+            return SourcePath(path._path)
         else:
             return SourcePath(env.cur_dir + '/' + path)
 
     def __str__(self) -> str:
-        return self.path
+        return self._path
 
     def __repr__(self) -> str:
-        return repr(self.path)
+        return repr(self._path)
 
 
 class BuildPath(str):
     def __init__(self, path: str):
-        self.path = path
+        self._path = path
 
     def new(env, path: str):
         if isinstance(path, BuildPath):
-            return BuildPath(path.path)
+            return BuildPath(path._path)
         elif isinstance(path, SourcePath):
-            return BuildPath(env.build_dir + '/' + path.path)
+            return BuildPath(env.build_dir + '/' + path._path)
         else:
             return BuildPath(env.build_dir + '/' + env.cur_dir + '/' + path)
 
@@ -42,7 +42,7 @@ class BuildPath(str):
             return BuildPath.new(env, root + '.' + ext)
 
     def __str__(self) -> str:
-        return self.path
+        return self._path
 
     def __repr__(self) -> str:
-        return repr(self.path)
+        return repr(self._path)
