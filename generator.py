@@ -60,9 +60,9 @@ class BuildEdge:
 
 class Generator:
     def __init__(self):
-        self.build_dir = os.environ.get('NPBUILD')
-        self.rules = {}
-        self.build_edges = []
+        self._build_dir = os.environ.get('NPBUILD')
+        self._rules = {}
+        self._build_edges = []
 
         # default rules
         self.add_rule('install', Rule(
@@ -112,24 +112,24 @@ class Generator:
         ))
 
         # special build edge for 'always-rebuild' build edges
-        self.build_edges.append(BuildEdge(
+        self._build_edges.append(BuildEdge(
             'phony',
             outs=['always'],
             ins=[],
             deps=[]
         ))
 
-    def add_rule(self, name: str, rule: str):
-        assert name not in self.rules
-        self.rules[name] = rule
+    def add_rule(self, name: str, rule: Rule):
+        assert name not in self._rules
+        self._rules[name] = rule
 
     def add_build(self, edge: BuildEdge):
-        assert edge.rule in self.rules
-        self.rules[edge.rule].refs += 1
-        self.build_edges.append(edge)
+        assert edge.rule in self._rules
+        self._rules[edge.rule].refs += 1
+        self._build_edges.append(edge)
 
     def write_to_file(self):
-        outdir = self.build_dir
+        outdir = self._build_dir
 
         build_file = outdir + '/build.ninja'
         dep_file = outdir + '/.build.deps'
@@ -162,7 +162,7 @@ class Generator:
                 file.write('%s = %s\n' % (k, v))
             file.write('\n')
 
-            for n, r in self.rules.items():
+            for n, r in self._rules.items():
                 if r.refs > 0:
                     r._write_to_file(n, file)
             file.write('\n')
@@ -172,7 +172,7 @@ class Generator:
             file.write('  depth = 1\n')
             file.write('\n')
 
-            for b in self.build_edges:
+            for b in self._build_edges:
                 b._write_to_file(defaults, file)
 
         # generate deps of build.ninja
@@ -181,14 +181,14 @@ class Generator:
             deps.write(build_file + ': ' + ' '.join(build_files))
 
     def write_compile_cmds(self):
-        outdir = self.build_dir
+        outdir = self._build_dir
 
         # generate compile_commands.json for clangd
         with open(outdir + '/compile_commands.json', 'w') as cmds:
             cmds.write('[\n')
             base_dir = os.getcwd()
             c = 0
-            for b in self.build_edges:
+            for b in self._build_edges:
                 if b.rule == 'cxx' or b.rule == 'cc':
                     assert len(b.ins) == 1
                     if c > 0:
@@ -211,7 +211,7 @@ class Generator:
     def _determine_defaults(self) -> dict[str, str]:
         # first count the number of times for each value and each variable
         vars = {}
-        for b in self.build_edges:
+        for b in self._build_edges:
             for k, v in b.vars.items():
                 if k not in vars:
                     vars[k] = {}
@@ -235,7 +235,7 @@ class Generator:
 
     def _finalize_deps(self):
         libs = self._collect_libs()
-        for b in self.build_edges:
+        for b in self._build_edges:
             for d in b.pre_deps:
                 stname = 'lib' + d + '.a'
                 shname = 'lib' + d + '.so'
@@ -250,7 +250,7 @@ class Generator:
 
     def _collect_libs(self) -> dict[str, dict[str, str]]:
         libs = {}
-        for b in self.build_edges:
+        for b in self._build_edges:
             for o in b.outs:
                 if o.endswith('.a') or o.endswith('.so'):
                     dir = os.path.dirname(o)
