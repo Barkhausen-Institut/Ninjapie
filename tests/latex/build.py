@@ -11,7 +11,7 @@ class LatexEnv(Env):
             deps=deps,
             vars={
                 'tex': self['TEX'],
-                'dir': self['BUILDDIR'],
+                'dir': self.build_dir,
                 'texflags': ' '.join(self['TEXFLAGS'])
             }
         ))
@@ -30,4 +30,4 @@ env['TEX'] = 'pdflatex'
 env['TEXFLAGS'] = ['-interaction=nonstopmode']
 env.tex(gen, 'hello.tex', deps=['example.pdf'])
 
-gen.write_to_file(env)
+gen.write_to_file()

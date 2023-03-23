@@ -14,77 +14,83 @@ class Location:
 
 class Env:
     def __init__(self):
-        self.cwd = Location('.')
-
-        self.vars = {}
+        self._cwd = Location('.')
+        self._build_dir = os.environ.get('NPBUILD')
+        self._vars = {}
 
         # default tools
-        self.vars['CXX'] = 'g++'
-        self.vars['CPP'] = 'cpp'
-        self.vars['AS'] = 'gcc'
-        self.vars['CC'] = 'gcc'
-        self.vars['AR'] = 'gcc-ar'
-        self.vars['SHLINK'] = 'gcc'
-        self.vars['RANLIB'] = 'gcc-ranlib'
-        self.vars['STRIP'] = 'strip'
+        self._vars['CXX'] = 'g++'
+        self._vars['CPP'] = 'cpp'
+        self._vars['AS'] = 'gcc'
+        self._vars['CC'] = 'gcc'
+        self._vars['AR'] = 'gcc-ar'
+        self._vars['SHLINK'] = 'gcc'
+        self._vars['RANLIB'] = 'gcc-ranlib'
+        self._vars['STRIP'] = 'strip'
 
         # default flags
-        self.vars['ASFLAGS'] = []
-        self.vars['CFLAGS'] = []
-        self.vars['CPPFLAGS'] = []
-        self.vars['CXXFLAGS'] = []
-        self.vars['LINKFLAGS'] = []
-        self.vars['SHLINKFLAGS'] = []
-        self.vars['CRGFLAGS'] = []
-        self.vars['ARFLAGS'] = ['rc']
+        self._vars['ASFLAGS'] = []
+        self._vars['CFLAGS'] = []
+        self._vars['CPPFLAGS'] = []
+        self._vars['CXXFLAGS'] = []
+        self._vars['LINKFLAGS'] = []
+        self._vars['SHLINKFLAGS'] = []
+        self._vars['CRGFLAGS'] = []
+        self._vars['ARFLAGS'] = ['rc']
 
         # default paths
-        self.vars['BUILDDIR'] = os.environ.get('NPBUILD')
-        self.vars['RUSTBINS'] = '.'
-        self.vars['CPPPATH'] = []
-        self.vars['LIBPATH'] = []
+        self._vars['RUSTBINS'] = '.'
+        self._vars['CPPPATH'] = []
+        self._vars['LIBPATH'] = []
 
     def clone(self):
         env = type(self)()
-        env.cwd = self.cwd
-        env.vars = copy.deepcopy(self.vars)
+        env._cwd = self._cwd
+        env._vars = copy.deepcopy(self._vars)
         return env
 
+    @property
+    def cur_dir(self) -> str:
+        return self._cwd.path
+
+    @property
+    def build_dir(self) -> str:
+        return self._build_dir
+
     def __getitem__(self, var: str):
-        return self.vars[var]
+        return self._vars[var]
 
     def __setitem__(self, var: str, value):
-        assert var != 'BUILDDIR', "BUILDDIR can only be set via the NPBUILD environment variable"
-        self.vars[var] = value
+        self._vars[var] = value
 
     def add_flag(self, var: str, flag: str):
         self.add_flags(var, [flag])
 
     def add_flags(self, var: str, flags: list[str]):
-        assert isinstance(self.vars[var], list)
-        self.vars[var] += flags
+        assert isinstance(self._vars[var], list)
+        self._vars[var] += flags
 
     def remove_flag(self, var: str, flag: str):
         self.remove_flags(var, [flag])
 
     def remove_flags(self, var: str, flags: list[str]):
         for f in flags:
-            assert isinstance(self.vars[var], list)
-            if f in self.vars[var]:
-                self.vars[var].remove(f)
+            assert isinstance(self._vars[var], list)
+            if f in self._vars[var]:
+                self._vars[var].remove(f)
 
     def sub_build(self, gen: Generator, dir: str):
-        old_cwd = self.cwd.path
-        self.cwd.path += '/' + dir
+        old_cwd = self.cur_dir
+        self._cwd.path += '/' + dir
 
-        mod_path = self.cwd.path[2:].replace('/', '.')
+        mod_path = self.cur_dir[2:].replace('/', '.')
         b = importlib.import_module(mod_path + '.build')
         b.build(gen, self)
 
-        self.cwd.path = old_cwd
+        self._cwd.path = old_cwd
 
     def glob(self, pattern: str, recursive: bool = False) -> list[SourcePath]:
-        files = glob(self.cwd.path + '/' + pattern, recursive=recursive)
+        files = glob(self.cur_dir + '/' + pattern, recursive=recursive)
         return [SourcePath(f) for f in files]
 
     def install(self, gen: Generator, outdir: str, input: str, flags: str = '') -> str:
@@ -200,9 +206,9 @@ class Env:
             }
         )
         gen.add_build(edge)
-        # don't install it if the library is already in BUILDDIR
-        if install and os.path.dirname(os.path.abspath(lib)) != os.path.abspath(self['BUILDDIR']):
-            self.install(gen, self['BUILDDIR'], lib)
+        # don't install it if the library is already in self.build_dir
+        if install and os.path.dirname(os.path.abspath(lib)) != os.path.abspath(self.build_dir):
+            self.install(gen, self.build_dir, lib)
         return lib
 
     def shared_lib(self, gen: Generator, out: str, ins: list[str],
@@ -219,9 +225,9 @@ class Env:
             }
         )
         gen.add_build(edge)
-        # don't install it if the library is already in BUILDDIR
-        if install and os.path.dirname(os.path.abspath(lib)) != os.path.abspath(self['BUILDDIR']):
-            self.install(gen, self['BUILDDIR'], lib)
+        # don't install it if the library is already in self.build_dir
+        if install and os.path.dirname(os.path.abspath(lib)) != os.path.abspath(self.build_dir):
+            self.install(gen, self.build_dir, lib)
         return lib
 
     def c_exe(self, gen: Generator, out: str, ins: list[str],
@@ -235,7 +241,7 @@ class Env:
     def _c_cxx_exe(self, gen: Generator, out: str, ins: list[str],
                    libs: list[str], deps: list[str], linker: str) -> BuildPath:
         flags = ''
-        lib_path = [self['BUILDDIR']] + self['LIBPATH']
+        lib_path = [self.build_dir] + self['LIBPATH']
         if len(libs) > 0:
             flags += ' '.join(self['LINKFLAGS'])
             flags += ' ' + ' '.join(['-L' + dir for dir in lib_path])
@@ -260,17 +266,17 @@ class Env:
         return bin
 
     def rust_lib(self, gen: Generator, out: str, deps: list[str] = []) -> BuildPath:
-        return self._rust(gen, 'lib' + out + '.a', deps, self['BUILDDIR'])
+        return self._rust(gen, 'lib' + out + '.a', deps, self.build_dir)
 
     def rust_exe(self, gen: Generator, out: str, deps: list[str] = []) -> BuildPath:
-        return self._rust(gen, out, deps, self['BUILDDIR'])
+        return self._rust(gen, out, deps, self.build_dir)
 
     def _rust(self, gen: Generator, out: str, deps: list[str], installDir) -> BuildPath:
         # determine destination based on flags
         btype = 'release' if '--release' in self['CRGFLAGS'] else 'debug'
         bin = BuildPath.new(self, self['RUSTBINS'] + '/' + btype + '/' + out)
         # make sure that cargo puts it there
-        env = 'CARGO_TARGET_DIR="' + self['BUILDDIR'] + '/' + self['RUSTBINS'] + '"'
+        env = 'CARGO_TARGET_DIR="' + self.build_dir + '/' + self['RUSTBINS'] + '"'
 
         edge = BuildEdge(
             'cargo',
@@ -278,7 +284,7 @@ class Env:
             ins=[],
             deps=deps,
             vars={
-                'dir': self.cwd.path,
+                'dir': self.cur_dir,
                 'cargoflags': 'build ' + ' '.join(self['CRGFLAGS']),
                 'env': env
             }

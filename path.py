@@ -11,7 +11,7 @@ class SourcePath(str):
         elif isinstance(path, BuildPath):
             return SourcePath(path.path)
         else:
-            return SourcePath(env.cwd.path + '/' + path)
+            return SourcePath(env.cur_dir + '/' + path)
 
     def __str__(self) -> str:
         return self.path
@@ -28,9 +28,9 @@ class BuildPath(str):
         if isinstance(path, BuildPath):
             return BuildPath(path.path)
         elif isinstance(path, SourcePath):
-            return BuildPath(env['BUILDDIR'] + '/' + path.path)
+            return BuildPath(env.build_dir + '/' + path.path)
         else:
-            return BuildPath(env['BUILDDIR'] + '/' + env.cwd.path + '/' + path)
+            return BuildPath(env.build_dir + '/' + env.cur_dir + '/' + path)
 
     def with_file_ext(env, path: str, ext: str):
         (root, cur_ext) = os.path.splitext(path)

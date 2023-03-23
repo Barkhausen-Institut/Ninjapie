@@ -60,6 +60,7 @@ class BuildEdge:
 
 class Generator:
     def __init__(self):
+        self.build_dir = os.environ.get('NPBUILD')
         self.rules = {}
         self.build_edges = []
 
@@ -127,8 +128,8 @@ class Generator:
         self.rules[edge.rule].refs += 1
         self.build_edges.append(edge)
 
-    def write_to_file(self, env):
-        outdir = env['BUILDDIR']
+    def write_to_file(self):
+        outdir = self.build_dir
 
         build_file = outdir + '/build.ninja'
         dep_file = outdir + '/.build.deps'
@@ -179,8 +180,8 @@ class Generator:
         with open(dep_file, 'w') as deps:
             deps.write(build_file + ': ' + ' '.join(build_files))
 
-    def write_compile_cmds(self, env):
-        outdir = env['BUILDDIR']
+    def write_compile_cmds(self):
+        outdir = self.build_dir
 
         # generate compile_commands.json for clangd
         with open(outdir + '/compile_commands.json', 'w') as cmds:
