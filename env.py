@@ -37,6 +37,7 @@ class Env:
         self._vars['SHLINKFLAGS'] = []
         self._vars['CRGFLAGS'] = []
         self._vars['ARFLAGS'] = ['rc']
+        self._vars['INSTFLAGS'] = []
 
         # default paths
         self._vars['RUSTBINS'] = '.'
@@ -93,10 +94,11 @@ class Env:
         files = glob(self.cur_dir + '/' + pattern, recursive=recursive)
         return [SourcePath(f) for f in files]
 
-    def install(self, gen: Generator, outdir: str, input: str, flags: str = '') -> str:
-        return self.install_as(gen, outdir + '/' + os.path.basename(input), input, flags)
+    def install(self, gen: Generator, outdir: str, input: str) -> str:
+        return self.install_as(gen, outdir + '/' + os.path.basename(input), input)
 
-    def install_as(self, gen: Generator, out: str, input: str, flags: str = '') -> str:
+    def install_as(self, gen: Generator, out: str, input: str) -> str:
+        flags = ' '.join(self['INSTFLAGS'])
         edge = BuildEdge(
             'install',
             outs=[out],
