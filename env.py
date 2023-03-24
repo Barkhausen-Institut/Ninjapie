@@ -7,11 +7,6 @@ from path import BuildPath, SourcePath
 from generator import BuildEdge, Generator
 
 
-class Location:
-    def __init__(self, path: str):
-        self.path = path
-
-
 class Env:
     """
     An `Env` is a container for variables that are used to produce build edges for the `Generator`.
@@ -35,6 +30,10 @@ class Env:
     ```
     """
 
+    class _Location:
+        def __init__(self, path: str):
+            self.path = path
+
     def __init__(self):
         """
         Creates a new `Env` with default settings.
@@ -43,7 +42,7 @@ class Env:
         etc.), compiler flags are empty, and paths are empty as well.
         """
 
-        self._cwd = Location('.')
+        self._cwd = Env._Location('.')
         self._build_dir = os.environ.get('NPBUILD')
         self._vars = {}
 
