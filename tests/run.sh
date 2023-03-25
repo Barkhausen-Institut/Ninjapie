@@ -9,14 +9,14 @@ while IFS= read -r -d '' d; do
     echo "Running test in \"$(basename "$d")\"..."
 
     if (
-        cd "$d" && ninjapie -c || exit 1
+        cd "$d" && ninjapie clean || exit 1
 
-        ninjapie -v || exit 1
+        ninjapie -- -v || exit 1
 
         case "$(basename "$d")" in
             rust|rust-c) ;;
             *)
-                if [ "$(ninjapie -v 2>&1)" != "ninja: no work to do." ]; then
+                if [ "$(ninjapie -- -v 2>&1)" != "ninja: no work to do." ]; then
                     echo "Expected no work, but got work to do."
                     exit 1
                 fi

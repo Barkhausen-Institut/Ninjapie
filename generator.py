@@ -155,6 +155,7 @@ class Generator:
         self._build_dir = os.environ.get('NPBUILD')
         self._rules = {}
         self._build_edges = []
+        self._globs = []
 
         # default rules
         self.add_rule('install', Rule(
@@ -246,6 +247,15 @@ class Generator:
         self._rules[edge.rule].refs += 1
         self._build_edges.append(edge)
 
+    def _add_glob(self, pattern):
+        """
+        Adds the given pattern to the list of globs
+
+        These globs will be written to file in `Generator.write_to_file`.
+        """
+
+        self._globs += [pattern]
+
     def write_to_file(self):
         """
         Writes the Ninja build file according to the so far added rules and build edges.
@@ -261,6 +271,7 @@ class Generator:
 
         build_file = outdir + '/build.ninja'
         dep_file = outdir + '/.build.deps'
+        glob_file = outdir + '/.build.globs'
 
         # rules and build edge to automatically regenerate the build.ninja
         self.add_rule('generator', Rule(
@@ -305,8 +316,13 @@ class Generator:
 
         # generate deps of build.ninja
         build_files = ['build.py'] + glob('./**/build.py', recursive=True)
-        with open(dep_file, 'w') as deps:
-            deps.write(build_file + ': ' + ' '.join(build_files))
+        with open(dep_file, 'w') as file:
+            file.write(build_file + ': ' + ' '.join(build_files))
+
+        # generate files with all globs
+        with open(glob_file, 'w') as file:
+            for g in self._globs:
+                file.write(g + '\n')
 
     def write_compile_cmds(self):
         """

@@ -249,10 +249,27 @@ class Env:
 
         self._cwd.path = old_cwd
 
-    def glob(self, pattern: str, recursive: bool = False) -> list[SourcePath]:
-        # TODO store these globs into a file and use exactly these for find to determine whether
-        # something has changed
-        files = glob(self.cur_dir + '/' + pattern, recursive=recursive)
+    def glob(self, gen: Generator, pattern: str) -> list[SourcePath]:
+        """
+        Produces a list of files that match the given pattern
+
+        The pattern uses the same syntax as the Python function `glob.glob`. For example, '*.c'
+        produces a list of all C files in the current directory. Since the `recursive` argument to
+        `glob.glob` is always set to true, '**/*.c' would produce a list of all C files in the
+        current directory or subdirectories.
+
+        Note that globbing has the side effect that the required build steps might change on added
+        or removed files. For that reason, Ninjapie records the glob patterns and regenerates the
+        ninja build file whenever any file is added or removed. In other words, using `Env.glob` is
+        a trade-off between more convenience and faster builds, because Ninjapie needs to perform
+        additional checks for globs. Note that this also means that *only* this function should be
+        used for globbing, because all other ways bypass Ninjapie and therefore lead to potentially
+        outdated ninja build files.
+        """
+
+        pat = self.cur_dir + '/' + pattern
+        gen._add_glob(pat)
+        files = glob(pat, recursive=True)
         return [SourcePath(f) for f in files]
 
     def install(self, gen: Generator, outdir: str, input: str) -> str:

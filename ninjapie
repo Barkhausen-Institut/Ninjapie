@@ -1,50 +1,97 @@
-#!/bin/sh
+#!/usr/bin/env python3
 
-build=${NPBUILD:-build}
+import argparse
+from glob import glob
+import os
+import subprocess
+import sys
 
-usage() {
-    echo "$1 [-c] [--help|-h|-?] [--] [<ninja-argument> ...]" >&2
-    echo "  -c:                   clean build directory"
-    echo "  --help|-h|-?:         print this help"
-    exit
-}
 
-while [ $# -gt 0 ]; do
-    if [ "$1" = "-c" ]; then
-        rm -rf "$build"
-        exit
-    elif [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "-?" ]; then
-        usage "$0"
-    elif [ "$1" = "--" ]; then
-        shift
-        break
-    else
-        break
-    fi
-    shift
-done
+def all_files():
+    """Collects a string with all files found by the patters in the globs file"""
+    files = ''
+    with open(build_dir + '/.build.globs', 'r') as file:
+        for line in file.readlines():
+            files += '\n'.join(glob(line.strip(), recursive=True))
+            files += '\n'
+    return files
 
-mkdir -p "$build"
 
-# add this directory to PYTHONPATH so that we can import ninjapie in the build.py files
-root=$(dirname "$(readlink -f "$0")")
-export PYTHONPATH="$root:$PYTHONPATH"
+def remove_dir(path):
+    """Removes the given directory recursively"""
+    for d in os.listdir(path):
+        try:
+            remove_dir(path + '/' + d)
+        except OSError:
+            os.remove(path + '/' + d)
+    os.rmdir(path)
 
-export NPBUILD=$build
 
-# redo the configuration if any file was added/removed
-filesid="$build/.all-files.id"
-find . \( -path "./$build" -o -path "./.ninja*" \) -prune -o -type f -print > "$filesid.new"
-if [ ! -f "$build/build.ninja" ] || ! cmp "$filesid.new" "$filesid" 1>/dev/null 2>&1; then
-    python -B build.py || exit 1
-    mv "$filesid.new" "$filesid"
-fi
+root_dir = os.path.dirname(os.path.realpath(__file__))
+
+# determine and create build dir
+build_dir = os.environ.setdefault('NPBUILD', 'build')
+if not os.path.isdir(build_dir):
+    os.makedirs(build_dir)
+
+# parse command line arguments
+ninja_args = []
+if len(sys.argv) > 1:
+    if sys.argv[1] == 'clean':
+        remove_dir(build_dir)
+        sys.exit(0)
+    elif sys.argv[1] == '-h' or sys.argv[1] == '--help':
+        print("Usage: " + sys.argv[0] + " [clean] [-h|--help] [--] [<ninja-arg> ...]")
+        print("")
+        print("Ninjapie supports the following commands:")
+        print("  clean:     remove the build directory")
+        print("  -h|--help: print this help")
+        print("")
+        print("The remaining arguments, possibly prefixed by `--', are sent to ninja.")
+        sys.exit(0)
+    elif sys.argv[1] == '--':
+        ninja_args = sys.argv[2:]
+    else:
+        ninja_args = sys.argv[1:]
+
+# export PYTHONPATH to find the ninjapie modules
+python_path = os.environ.setdefault('PYTHONPATH', '')
+os.environ['PYTHONPATH'] = root_dir + ':' + python_path
+
+reconf = False
+all_files_path = build_dir + '/.build.files'
+
+# check whether files have been added or removed
+try:
+    old_files = open(all_files_path, 'r').read()
+    new_files = all_files()
+    # if the list of files changed, we need to reconfigure
+    reconf = old_files != new_files
+except FileNotFoundError:
+    reconf = True
+    pass
+
+build_file = build_dir + '/build.ninja'
+
+# run configure if not done before or it's required
+if reconf or not os.path.isfile(build_file):
+    try:
+        # run build.py, but don't write *.pyc files
+        subprocess.check_call(['python3', '-B', 'build.py'])
+    except:
+        sys.exit(1)
+
+    # store new list of files from globs
+    new_files = all_files()
+    with open(all_files_path, 'w') as file:
+        file.write(new_files)
 
 # now build everything with ninja
-ninja -f "$build/build.ninja" "$@" >&2 || {
+try:
+    subprocess.check_call(['ninja', '-f', build_file] + ninja_args, stdout=sys.stderr.buffer)
+except:
     # ensure that we regenerate the build.ninja next time. Since ninja does not accept the
     # build.ninja, it will also not detect changes our build files in order to regenerate it.
-    # Therefore, force ourself to regenerate it by removing our "files id".
-    rm -f "$filesid"
-    exit 1
-}
+    # Therefore, force a regenerate next time by removing the file.
+    os.remove(all_files_path)
+    sys.exit(1)
