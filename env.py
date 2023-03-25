@@ -21,13 +21,11 @@ class Env:
     the environment variable `$NPBUILD`.
 
     An example usage of `Env` looks like the following:
-    ```
-    env = Env()
-    gen = Generator()
-    env['CXXFLAGS'] += ['-Wall', '-Wextra']
-    env.cxx_exe(gen, out='hello', ins=['hello.cc'])
-    gen.write_to_file()
-    ```
+    >>> env = Env()
+    ... gen = Generator()
+    ... env['CXXFLAGS'] += ['-Wall', '-Wextra']
+    ... env.cxx_exe(gen, out='hello', ins=['hello.cc'])
+    ... gen.write_to_file()
     """
 
     class _Location:
@@ -80,16 +78,14 @@ class Env:
         build edge with different settings without influencing other build edges.
 
         An example usage looks like the following:
-        ```
-        env['CFLAGS'] += ['-Wall', '-Wextra']
-
-        foo_env = env.clone()
-        foo_env.add_flag('CPPFLAGS', '-DMY_CONSTANT=42')
-        foo_env.remove_flag('CFLAGS', '-Wextra')
-        obj = foo_env.cc(gen, out='foo.o', ins=['foo.c'])
-
-        env.c_exe(gen, out='hello', ins=['hello.c', obj])
-        ```
+        >>> env['CFLAGS'] += ['-Wall', '-Wextra']
+        ...
+        ... foo_env = env.clone()
+        ... foo_env.add_flag('CPPFLAGS', '-DMY_CONSTANT=42')
+        ... foo_env.remove_flag('CFLAGS', '-Wextra')
+        ... obj = foo_env.cc(gen, out='foo.o', ins=['foo.c'])
+        ...
+        ... env.c_exe(gen, out='hello', ins=['hello.c', obj])
 
         The example has a general environment with default settings and clones this environment to
         produce an object file that requires different settings to be built. Afterwards, the
@@ -150,9 +146,7 @@ class Env:
         Adds a flag to the given flag variable
 
         This is a convenience method that is semantically equivalent to:
-        ```
-        self[var] += [flag]
-        ```
+        >>> self[var] += [flag]
 
         Note that this can only be used for variables of type `list[str]` such as `CFLAGS`.
 
@@ -169,9 +163,7 @@ class Env:
         Adds flags to the given flag variable
 
         This is a convenience method that is semantically equivalent to:
-        ```
-        self[var] += flags
-        ```
+        >>> self[var] += flags
 
         Note that this can only be used for variables of type `list[str]` such as `CFLAGS`.
 
@@ -189,9 +181,7 @@ class Env:
         Removes the given flag from the given flag variable
 
         This is a convenience method that is semantically equivalent to:
-        ```
-        self[var].remove(flag)
-        ```
+        >>> self[var].remove(flag)
 
         Note that this can only be used for variables of type `list[str]` such as `CFLAGS`.
 
@@ -208,10 +198,8 @@ class Env:
         Removes the given flags from the given flag variable
 
         This is a convenience method that is semantically equivalent to:
-        ```
-        for flag in flags:
-            self[var].remove(flag)
-        ```
+        >>> for flag in flags:
+        ...     self[var].remove(flag)
 
         Note that this can only be used for variables of type `list[str]` such as `CFLAGS`.
 
@@ -241,16 +229,12 @@ class Env:
         generator and environment as arguments. This will be called by `Env.sub_build`.
 
         For example, the `build.py` in the root directory could do the following:
-        ```
-        env.sub_build(gen, 'sub')
-        env.c_exe(gen, out='hello', ins=['hello.c'], libs=['sub'])
-        gen.write_to_file()
-        ```
+        >>> env.sub_build(gen, 'sub')
+        ... env.c_exe(gen, out='hello', ins=['hello.c'], libs=['sub'])
+        ... gen.write_to_file()
         And the `build.py` in the subdirectory `sub`:
-        ```
-        def build(gen, env):
-            env.static_lib(gen, out='sub', ins=['sub.c'])
-        ```
+        >>> def build(gen, env):
+        ...     env.static_lib(gen, out='sub', ins=['sub.c'])
 
         This example would produce `libsub.a` in the subdirectory and use it to produce the `hello`
         executable in the root directory.
