@@ -40,6 +40,7 @@ class Env:
         etc.), compiler flags are empty, and paths are empty as well.
         """
 
+        self._id = 1
         self._cwd = Env._Location('.')
         self._build_dir = os.environ.get('NPBUILD')
         self._vars = {}
@@ -93,6 +94,7 @@ class Env:
         """
 
         env = type(self)()
+        env._id = self._id + 1
         env._cwd = self._cwd
         env._vars = copy.deepcopy(self._vars)
         return env
@@ -510,14 +512,17 @@ class Env:
         A list of `BuildPath`s to the object files
         """
 
+        # add a per-environment suffix to allow users to build the same files in different
+        # environments without interference
+        suffix = str(self._id) + '.o'
         objs = []
         for i in ins:
             if i.endswith('.S') or i.endswith('.s'):
-                objs.append(self.asm(gen, BuildPath.with_file_ext(self, i, 'o'), [i]))
+                objs.append(self.asm(gen, BuildPath.with_file_ext(self, i, suffix), [i]))
             elif i.endswith('.c'):
-                objs.append(self.cc(gen, BuildPath.with_file_ext(self, i, 'o'), [i]))
+                objs.append(self.cc(gen, BuildPath.with_file_ext(self, i, suffix), [i]))
             elif i.endswith('.cc') or i.endswith('.cpp'):
-                objs.append(self.cxx(gen, BuildPath.with_file_ext(self, i, 'o'), [i]))
+                objs.append(self.cxx(gen, BuildPath.with_file_ext(self, i, suffix), [i]))
             elif i.endswith('.o') or i.endswith('.a') or i.endswith('.so'):
                 objs.append(BuildPath.new(self, i))
         return objs
