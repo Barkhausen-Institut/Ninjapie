@@ -10,10 +10,13 @@ import sys
 def all_files():
     """Collects a string with all files found by the patters in the globs file"""
     files = ''
-    with open(build_dir + '/.build.globs', 'r') as file:
-        for line in file.readlines():
-            files += '\n'.join(glob(line.strip(), recursive=True))
-            files += '\n'
+    try:
+        with open(build_dir + '/.build.globs', 'r') as file:
+            for line in file.readlines():
+                files += '\n'.join(glob(line.strip(), recursive=True))
+                files += '\n'
+    except FileNotFoundError:
+        pass
     return files
 
 
