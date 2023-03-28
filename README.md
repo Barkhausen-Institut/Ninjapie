@@ -34,7 +34,7 @@ Ninjapie consists of an Environment and a Generator. The Environment stores all 
 ## Build Scripts
 
 A simple Ninjapie build script, called `build.py`, looks like the following:
-```
+```Python
 from ninjapie import Generator, Env
 gen = Generator()
 env = Env()
@@ -47,7 +47,7 @@ The example describes how to produce a C executable named `hello` from the input
 ## Paths
 
 Paths are handled in Ninjapie via `SourcePath` and `BuildPath`. The former is used to refer to source files, whereas the latter is used to refer to build files. Source files are specified relative to the current directory in `Env` and build files are specified relative to the build directory *and* current directory in `Env`. These path objects are typically not used in user code, because the methods in `Env` expect lists of strings. However, due to the way `SourcePath` and `BuildPath` are designed you can also add these paths to the list. For example, you can use `Env.cc` to build an object file and pass the resulting `BuildPath` (referring to the created object file) to `Env.c_exe` to create an executable out of the object file and possibly other source files:
-```
+```Python
 obj = env.cc(gen, out='foo.o', ins=['foo.c'])
 env.c_exe(gen, out='hello', ins=[obj, 'hello.c'])
 ```
@@ -55,7 +55,7 @@ env.c_exe(gen, out='hello', ins=[obj, 'hello.c'])
 ## Globbing
 
 Ninjapie also supports globbing via `Env.glob`. For example, you can build all C files in the current directory to an executable in the following way:
-```
+```Python
 env.c_exe(gen, out='hello', ins=env.glob(gen, '*.c'))
 ```
 Note however that globbing has the side effect that the required build steps might change on added or removed files. For that reason, Ninjapie records the glob patterns and regenerates the ninja build file whenever any file is added or removed. In other words, using `Env.glob` is a trade-off between more convenience and faster builds, because Ninjapie needs to perform additional checks for globs. Therefore, using globbing extensively might cause a measurable overhead. Note that this also means that *only* this function should be used for globbing, because all other ways bypass Ninjapie and therefore lead to potentially outdated ninja build files.
