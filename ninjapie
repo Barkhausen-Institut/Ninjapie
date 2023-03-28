@@ -20,81 +20,102 @@ def all_files():
     return files
 
 
-def remove_dir(path):
-    """Removes the given directory recursively"""
-    for d in os.listdir(path):
+def clean(args):
+    def remove_dir(path):
+        """Removes the given directory recursively"""
+        for d in os.listdir(path):
+            try:
+                remove_dir(path + '/' + d)
+            except OSError:
+                os.remove(path + '/' + d)
+        os.rmdir(path)
+
+    remove_dir(build_dir)
+
+
+def build(args):
+    reconf = args.force_regen
+    root_dir = os.path.dirname(os.path.realpath(__file__))
+    all_files_path = build_dir + '/.build.files'
+    build_file = build_dir + '/build.ninja'
+
+    # export PYTHONPATH to find the ninjapie modules
+    python_path = os.environ.setdefault('PYTHONPATH', '')
+    os.environ['PYTHONPATH'] = root_dir + ':' + python_path
+
+    # check if we need to reconfigure
+    if not reconf:
         try:
-            remove_dir(path + '/' + d)
-        except OSError:
-            os.remove(path + '/' + d)
-    os.rmdir(path)
+            # check whether files have been added or removed
+            old_files = open(all_files_path, 'r').read()
+            new_files = all_files()
+            # if the list of files changed, we need to reconfigure
+            reconf = old_files != new_files
+        except FileNotFoundError:
+            reconf = True
+            pass
 
+    # run configure if not done before or it's required
+    if reconf or not os.path.isfile(build_file):
+        try:
+            # run build.py, but don't write *.pyc files
+            subprocess.check_call(['python3', '-B', 'build.py'])
+        except:
+            sys.exit(1)
 
-root_dir = os.path.dirname(os.path.realpath(__file__))
+        # store new list of files from globs
+        new_files = all_files()
+        with open(all_files_path, 'w') as file:
+            file.write(new_files)
+
+    # now build everything with ninja
+    try:
+        subprocess.check_call(['ninja', '-f', build_file] + ninja_args, stdout=sys.stderr.buffer)
+    except:
+        # ensure that we regenerate the build.ninja next time. Since ninja does not accept the
+        # build.ninja, it will also not detect changes our build files in order to regenerate it.
+        # Therefore, force a regenerate next time by removing the file.
+        os.remove(all_files_path)
+        sys.exit(1)
+
 
 # determine and create build dir
 build_dir = os.environ.setdefault('NPBUILD', 'build')
 if not os.path.isdir(build_dir):
     os.makedirs(build_dir)
 
-# parse command line arguments
-ninja_args = []
-if len(sys.argv) > 1:
-    if sys.argv[1] == 'clean':
-        remove_dir(build_dir)
-        sys.exit(0)
-    elif sys.argv[1] == '-h' or sys.argv[1] == '--help':
-        print("Usage: " + sys.argv[0] + " [clean] [-h|--help] [--] [<ninja-arg> ...]")
-        print("")
-        print("Ninjapie supports the following commands:")
-        print("  clean:     remove the build directory")
-        print("  -h|--help: print this help")
-        print("")
-        print("The remaining arguments, possibly prefixed by `--', are sent to ninja.")
-        sys.exit(0)
-    elif sys.argv[1] == '--':
-        ninja_args = sys.argv[2:]
-    else:
-        ninja_args = sys.argv[1:]
+# define command line arguments
+parser = argparse.ArgumentParser(
+    description='This is the Ninjapie build system. '
+        'Besides the supported command line arguments all additional arguments, '
+        'preceeded by "--", will be passed to ninja. For example "ninjapie -- -v".'
+)
+subparsers = parser.add_subparsers(
+    title='commands',
+    description='The command to execute (build by default)',
+)
 
-# export PYTHONPATH to find the ninjapie modules
-python_path = os.environ.setdefault('PYTHONPATH', '')
-os.environ['PYTHONPATH'] = root_dir + ':' + python_path
+parser_clean = subparsers.add_parser('clean', description='Removes the build directory')
+parser_clean.set_defaults(func=clean)
 
-reconf = False
-all_files_path = build_dir + '/.build.files'
+parser_build = subparsers.add_parser('build', description='Builds everything (the default command)')
+parser_build.add_argument('-f', '--force-regen', action='store_true', default=False,
+    help='force a regeneration of the ninja build file')
+parser_build.set_defaults(func=build)
 
-# check whether files have been added or removed
+# we pass everything after "--" directly to ninja
 try:
-    old_files = open(all_files_path, 'r').read()
-    new_files = all_files()
-    # if the list of files changed, we need to reconfigure
-    reconf = old_files != new_files
-except FileNotFoundError:
-    reconf = True
-    pass
-
-build_file = build_dir + '/build.ninja'
-
-# run configure if not done before or it's required
-if reconf or not os.path.isfile(build_file):
-    try:
-        # run build.py, but don't write *.pyc files
-        subprocess.check_call(['python3', '-B', 'build.py'])
-    except:
-        sys.exit(1)
-
-    # store new list of files from globs
-    new_files = all_files()
-    with open(all_files_path, 'w') as file:
-        file.write(new_files)
-
-# now build everything with ninja
-try:
-    subprocess.check_call(['ninja', '-f', build_file] + ninja_args, stdout=sys.stderr.buffer)
+    ninja_start = sys.argv.index('--')
+    ninja_args = sys.argv[1 + ninja_start:]
+    our_args = sys.argv[1:ninja_start]
 except:
-    # ensure that we regenerate the build.ninja next time. Since ninja does not accept the
-    # build.ninja, it will also not detect changes our build files in order to regenerate it.
-    # Therefore, force a regenerate next time by removing the file.
-    os.remove(all_files_path)
-    sys.exit(1)
+    ninja_args = []
+    our_args = sys.argv[1:]
+
+# parse arguments and run command
+args = parser.parse_args(our_args)
+try:
+    args.func(args)
+except:
+    args.force_regen = False
+    build(args)
