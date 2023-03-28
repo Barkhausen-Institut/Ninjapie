@@ -407,13 +407,16 @@ class Env:
         ---------
         :param `CC`: the tool name (e.g., 'gcc')
         :param `ASFLAGS`: the flags (e.g., ['-Wa,--32'])
+        :param `CPPFLAGS`: the preprocessor flags (e.g., ['-DFOO=1'])
+        :param `CPPPATH`: the include paths (e.g., ['include'])
 
         Returns
         -------
         A `BuildPath` to the output file
         """
 
-        flags = ' '.join(self['ASFLAGS'])
+        flags = ' '.join(self['ASFLAGS'] + self['CPPFLAGS'])
+        flags += ' ' + ' '.join(['-I' + i for i in self['CPPPATH']])
         return self._cc(gen, out, ins, flags)
 
     def cc(self, gen: Generator, out: str, ins: list[str]) -> BuildPath:
