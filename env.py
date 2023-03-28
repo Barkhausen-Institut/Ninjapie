@@ -248,6 +248,8 @@ class Env:
         old_cwd = self.cur_dir
         self._cwd.path += '/' + dir
 
+        gen._add_build_file(self.cur_dir + '/build.py')
+
         mod_path = self.cur_dir[2:].replace('/', '.')
         b = importlib.import_module(mod_path + '.build')
         b.build(gen, self)

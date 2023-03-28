@@ -156,6 +156,7 @@ class Generator:
         self._rules = {}
         self._build_edges = []
         self._globs = []
+        self._build_files = []
 
         # default rules
         self.add_rule('install', Rule(
@@ -256,6 +257,15 @@ class Generator:
 
         self._globs += [pattern]
 
+    def _add_build_file(self, file):
+        """
+        Adds the given file to the list of encountered `build.py` files
+
+        This list will be written to file in `Generator.write_to_file`.
+        """
+
+        self._build_files += [file]
+
     def write_to_file(self):
         """
         Writes the Ninja build file according to the so far added rules and build edges.
@@ -315,7 +325,7 @@ class Generator:
                 b._write_to_file(defaults, file)
 
         # generate deps of build.ninja
-        build_files = ['build.py'] + glob('./**/build.py', recursive=True)
+        build_files = ['build.py'] + self._build_files
         with open(dep_file, 'w') as file:
             file.write(build_file + ': ' + ' '.join(build_files))
 
