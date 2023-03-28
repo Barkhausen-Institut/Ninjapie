@@ -266,7 +266,7 @@ class Generator:
 
         self._build_files += [file]
 
-    def write_to_file(self):
+    def write_to_file(self, defaults: dict[str, str] = None):
         """
         Writes the Ninja build file according to the so far added rules and build edges.
 
@@ -275,6 +275,17 @@ class Generator:
         dependencies of the regeneration rule. This regeneration rule defines when the build.ninja
         file needs to be regenerated and how. The rule therefore depends on all `build.py` files in
         the current directory or any subdirectory.
+
+        Parameters
+        ----------
+        :param defaults: the default variables. If the value of a variable for a particular build
+            edge is the same as the value in the default variables, the variable will not be
+            specified for the build edge. As such, default variables help to reduce the size of the
+            ninja build file. By default (if `defaults` is `None`), Ninjapie determines these
+            defaults automatically by chosing the most used value for each default variable. You can
+            however specify a custom set of default variables instead. For example, this can be used
+            for debugging by specifying an empty dict so that all variables will be specified
+            explicitly for every build edge, which makes it easier to read the ninja build file.
         """
 
         outdir = self._build_dir
@@ -300,7 +311,8 @@ class Generator:
         ))
 
         self._finalize_deps()
-        defaults = self._determine_defaults()
+        if defaults is None:
+            defaults = self._determine_defaults()
 
         # generate build.ninja
         with open(build_file, 'w') as file:
