@@ -54,6 +54,7 @@ class Env:
         self._vars['SHLINK'] = 'gcc'
         self._vars['RANLIB'] = 'gcc-ranlib'
         self._vars['STRIP'] = 'strip'
+        self._vars['CARGO'] = 'cargo'
 
         # default flags
         self._vars['ASFLAGS'] = []
@@ -813,6 +814,7 @@ class Env:
             ins=[],
             deps=deps,
             vars={
+                'cargo': self['CARGO'],
                 'dir': self.cur_dir,
                 'cargoflags': 'build ' + flags,
                 'env': vars_str
