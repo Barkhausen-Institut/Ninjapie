@@ -63,7 +63,7 @@ class Env:
         self._vars['CXXFLAGS'] = []
         self._vars['LINKFLAGS'] = []
         self._vars['SHLINKFLAGS'] = []
-        self._vars['ARFLAGS'] = ['rc']
+        self._vars['ARFLAGS'] = []
         self._vars['INSTFLAGS'] = []
 
         # default paths

@@ -182,7 +182,7 @@ class Generator:
             desc='CXX $out'
         ))
         self.add_rule('ar', Rule(
-            cmd='$ar $arflags $out $in && $ranlib $out',
+            cmd='$ar rc $arflags $out $in && $ranlib $out',
             desc='AR $out'
         ))
         self.add_rule('link', Rule(
