@@ -272,7 +272,7 @@ class Env:
         outdated ninja build files.
         """
 
-        pat = self.cur_dir + '/' + pattern
+        pat = SourcePath.new(self, pattern)
         gen._add_glob(pat)
         files = glob(pat, recursive=True)
         return [SourcePath(f) for f in files]
