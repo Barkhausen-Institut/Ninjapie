@@ -62,14 +62,17 @@ class Env:
         self._vars['CXXFLAGS'] = []
         self._vars['LINKFLAGS'] = []
         self._vars['SHLINKFLAGS'] = []
-        self._vars['CRGFLAGS'] = []
         self._vars['ARFLAGS'] = ['rc']
         self._vars['INSTFLAGS'] = []
 
         # default paths
-        self._vars['RUSTBINS'] = '.'
         self._vars['CPPPATH'] = []
         self._vars['LIBPATH'] = []
+
+        # default rust settings
+        self._vars['RUSTBINS'] = '.'
+        self._vars['CRGFLAGS'] = []
+        self._vars['CRGENV'] = {}
 
     def clone(self):
         """
@@ -706,7 +709,8 @@ class Env:
         This method runs `cargo` in the current directory and therefore expects a `Cargo.toml` that
         produces a static Rust library. `CARGO_TARGET_DIR` will be set according to `Env.build_dir`
         and `RUSTBINS`. The produced static library will be installed to the default library folder
-        (`Env.build_path`).
+        (`Env.build_path`). You can also use `CRGENV` to provide additional environment variables to
+        cargo.
 
         Note: if `deps` is empty, this build edge will always be rebuilt to let `cargo` determine
         the required actions.
@@ -721,6 +725,7 @@ class Env:
         ---------
         :param `CRGFLAGS`: the flags (e.g., ['--release'])
         :param `RUSTBINS`: an optional subdirectory in `Env.build_dir` for Rust outputs
+        :param `CRGENV`: additional environment variables
 
         Returns
         -------
@@ -736,7 +741,8 @@ class Env:
         This method runs `cargo` in the current directory and therefore expects a `Cargo.toml` that
         produces a binary. `CARGO_TARGET_DIR` will be set according to `Env.build_dir` and
         `RUSTBINS`. The produced executable will be installed to the build directory
-        (`Env.build_path`).
+        (`Env.build_path`). You can also use `CRGENV` to provide additional environment variables to
+        cargo.
 
         Note: if `deps` is empty, this build edge will always be rebuilt to let `cargo` determine
         the required actions.
@@ -751,6 +757,7 @@ class Env:
         ---------
         :param `CRGFLAGS`: the flags (e.g., ['--release'])
         :param `RUSTBINS`: an optional subdirectory in `Env.build_dir` for Rust outputs
+        :param `CRGENV`: additional environment variables
 
         Returns
         -------
@@ -763,8 +770,14 @@ class Env:
         # determine destination based on flags
         btype = 'release' if '--release' in self['CRGFLAGS'] else 'debug'
         bin = BuildPath.new(self, self['RUSTBINS'] + '/' + btype + '/' + out)
+        flags = ' '.join(self['CRGFLAGS'])
         # make sure that cargo puts it there
-        env = 'CARGO_TARGET_DIR="' + self.build_dir + '/' + self['RUSTBINS'] + '"'
+        flags += ' --target-dir "' + os.path.abspath(self.build_dir + '/' + self['RUSTBINS']) + '"'
+
+        # build environment variables
+        vars_str = ''
+        for key, value in self['CRGENV'].items():
+            vars_str += ' ' + key + '="' + value + '"'
 
         edge = BuildEdge(
             'cargo',
@@ -773,8 +786,8 @@ class Env:
             deps=deps,
             vars={
                 'dir': self.cur_dir,
-                'cargoflags': 'build ' + ' '.join(self['CRGFLAGS']),
-                'env': env
+                'cargoflags': 'build ' + flags,
+                'env': vars_str
             }
         )
         gen.add_build(edge)
