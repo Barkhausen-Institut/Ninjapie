@@ -1,2 +1,3 @@
 def build(gen, env):
-    env.static_lib(gen, out='foo', ins=env.glob(gen, '*.c'))
+    lib = env.static_lib(gen, out='foo', ins=env.glob(gen, '*.c'))
+    env.install(gen, outdir=env.build_dir, input=lib)

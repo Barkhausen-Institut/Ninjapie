@@ -533,8 +533,7 @@ class Env:
                 objs.append(BuildPath.new(self, i))
         return objs
 
-    def static_lib(self, gen: Generator, out: str, ins: list[str],
-                   install: bool = True) -> BuildPath:
+    def static_lib(self, gen: Generator, out: str, ins: list[str]) -> BuildPath:
         """
         Produces the static library `"lib" + out + ".a"` from given input files
 
@@ -545,8 +544,6 @@ class Env:
         :param gen: the generator
         :param out: the output file
         :param ins: the list of input files
-        :param install: whether the library should be installed in the default library folder
-            (`Env.build_path`)
 
         Variables
         ---------
@@ -572,13 +569,9 @@ class Env:
             }
         )
         gen.add_build(edge)
-        # don't install it if the library is already in self.build_dir
-        if install and os.path.dirname(os.path.abspath(lib)) != os.path.abspath(self.build_dir):
-            self.install(gen, self.build_dir, lib)
         return lib
 
-    def shared_lib(self, gen: Generator, out: str, ins: list[str],
-                   install: bool = True) -> BuildPath:
+    def shared_lib(self, gen: Generator, out: str, ins: list[str]) -> BuildPath:
         """
         Produces the shared library `"lib" + out + ".so"` from given input files
 
@@ -589,8 +582,6 @@ class Env:
         :param gen: the generator
         :param out: the output file
         :param ins: the list of input files
-        :param install: whether the library should be installed in the default library folder
-            (`Env.build_path`)
 
         Variables
         ---------
@@ -614,9 +605,6 @@ class Env:
             }
         )
         gen.add_build(edge)
-        # don't install it if the library is already in self.build_dir
-        if install and os.path.dirname(os.path.abspath(lib)) != os.path.abspath(self.build_dir):
-            self.install(gen, self.build_dir, lib)
         return lib
 
     def c_exe(self, gen: Generator, out: str, ins: list[str],
@@ -678,10 +666,9 @@ class Env:
     def _c_cxx_exe(self, gen: Generator, out: str, ins: list[str],
                    libs: list[str], deps: list[str], linker: str) -> BuildPath:
         flags = ''
-        lib_path = [self.build_dir] + self['LIBPATH']
         if len(libs) > 0:
             flags += ' '.join(self['LINKFLAGS'])
-            flags += ' ' + ' '.join(['-L' + dir for dir in lib_path])
+            flags += ' ' + ' '.join(['-L' + dir for dir in self['LIBPATH']])
             flags += ' -Wl,--start-group'
             flags += ' ' + ' '.join(['-l' + lib for lib in libs])
             flags += ' -Wl,--end-group'
@@ -693,7 +680,7 @@ class Env:
             ins=self.objs(gen, ins),
             deps=deps,
             libs=libs,
-            lib_path=lib_path,
+            lib_path=self['LIBPATH'],
             vars={
                 'link': linker,
                 'linkflags': flags
@@ -709,9 +696,8 @@ class Env:
         This method runs `cargo` in the current directory and therefore expects a `Cargo.toml` that
         produces a static Rust library. The `--target-dir` argument will be pass to cargo according
         to `Env.build_dir` and `RUSTBINS`. The location of the produced file will be determined by
-        the `--target` argument in `CRGFLAGS`, if present. The produced static library will be
-        installed to the default library folder (`Env.build_path`). You can also use `CRGENV` to
-        provide additional environment variables to cargo.
+        the `--target` and `--release` arguments in `CRGFLAGS`, if present. You can also use
+        `CRGENV` to provide additional environment variables to cargo.
 
         Note: if `deps` is empty, this build edge will always be rebuilt to let `cargo` determine
         the required actions.
@@ -733,7 +719,7 @@ class Env:
         The `BuildPath` to the produced static library
         """
 
-        return self.rust(gen, ['lib' + out + '.a'], deps, self.build_dir)[0]
+        return self.rust(gen, ['lib' + out + '.a'], deps)[0]
 
     def rust_exe(self, gen: Generator, out: str, deps: list[str] = []) -> BuildPath:
         """
@@ -742,9 +728,8 @@ class Env:
         This method runs `cargo` in the current directory and therefore expects a `Cargo.toml` that
         produces a binary. The `--target-dir` argument will be pass to cargo according to
         `Env.build_dir` and `RUSTBINS`. The location of the produced file will be determined by the
-        `--target` argument in `CRGFLAGS`, if present. The produced executable will be installed to
-        the build directory (`Env.build_path`). You can also use `CRGENV` to provide additional
-        environment variables to cargo.
+        `--target` and `--release` arguments in `CRGFLAGS`, if present. You can also use `CRGENV` to
+        provide additional environment variables to cargo.
 
         Note: if `deps` is empty, this build edge will always be rebuilt to let `cargo` determine
         the required actions.
@@ -766,19 +751,17 @@ class Env:
         The `BuildPath` to the produced executable
         """
 
-        return self.rust(gen, [out], deps, self.build_dir)[0]
+        return self.rust(gen, [out], deps)[0]
 
-    def rust(self, gen: Generator, outs: list[str], deps: list[str],
-             install_dir: str = None) -> [BuildPath]:
+    def rust(self, gen: Generator, outs: list[str], deps: list[str]) -> [BuildPath]:
         """
         Produces multiple Rust libraries or executables
 
         This method runs `cargo` in the current directory and therefore expects a `Cargo.toml`. The
         `--target-dir` argument will be pass to cargo according to `Env.build_dir` and `RUSTBINS`.
-        The location of the produced files will be determined by the `--target` argument in
-        `CRGFLAGS`, if present. The produced files will be installed to the build directory
-        (`Env.build_path`). You can also use `CRGENV` to provide additional environment variables to
-        cargo.
+        The location of the produced files will be determined by the `--target` and `--release`
+        arguments in `CRGFLAGS`, if present. You can also use `CRGENV` to provide additional
+        environment variables to cargo.
 
         Note: if `deps` is empty, this build edge will always be rebuilt to let `cargo` determine
         the required actions.
@@ -788,7 +771,6 @@ class Env:
         :param gen: the generator
         :param outs: the output files
         :param deps: the additional list of dependencies
-        :param install_dir: the directory to install the output files to, if not `None`
 
         Variables
         ---------
@@ -835,9 +817,4 @@ class Env:
             }
         )
         gen.add_build(edge)
-
-        # don't install it if the binary is already in install_dir
-        if install_dir is not None and os.path.abspath(dest_dir) != os.path.abspath(install_dir):
-            return [BuildPath(self.install(gen, install_dir, o)) for o in out_paths]
-        else:
-            return out_paths
+        return out_paths
