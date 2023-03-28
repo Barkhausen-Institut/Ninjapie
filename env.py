@@ -704,13 +704,14 @@ class Env:
 
     def rust_lib(self, gen: Generator, out: str, deps: list[str] = []) -> BuildPath:
         """
-        Produces a Rust library from given input files
+        Produces a Rust library
 
         This method runs `cargo` in the current directory and therefore expects a `Cargo.toml` that
-        produces a static Rust library. `CARGO_TARGET_DIR` will be set according to `Env.build_dir`
-        and `RUSTBINS`. The produced static library will be installed to the default library folder
-        (`Env.build_path`). You can also use `CRGENV` to provide additional environment variables to
-        cargo.
+        produces a static Rust library. The `--target-dir` argument will be pass to cargo according
+        to `Env.build_dir` and `RUSTBINS`. The location of the produced file will be determined by
+        the `--target` argument in `CRGFLAGS`, if present. The produced static library will be
+        installed to the default library folder (`Env.build_path`). You can also use `CRGENV` to
+        provide additional environment variables to cargo.
 
         Note: if `deps` is empty, this build edge will always be rebuilt to let `cargo` determine
         the required actions.
@@ -732,17 +733,18 @@ class Env:
         The `BuildPath` to the produced static library
         """
 
-        return self._rust(gen, 'lib' + out + '.a', deps, self.build_dir)
+        return self.rust(gen, ['lib' + out + '.a'], deps, self.build_dir)[0]
 
     def rust_exe(self, gen: Generator, out: str, deps: list[str] = []) -> BuildPath:
         """
-        Produces a Rust executable from given input files
+        Produces a Rust executable
 
         This method runs `cargo` in the current directory and therefore expects a `Cargo.toml` that
-        produces a binary. `CARGO_TARGET_DIR` will be set according to `Env.build_dir` and
-        `RUSTBINS`. The produced executable will be installed to the build directory
-        (`Env.build_path`). You can also use `CRGENV` to provide additional environment variables to
-        cargo.
+        produces a binary. The `--target-dir` argument will be pass to cargo according to
+        `Env.build_dir` and `RUSTBINS`. The location of the produced file will be determined by the
+        `--target` argument in `CRGFLAGS`, if present. The produced executable will be installed to
+        the build directory (`Env.build_path`). You can also use `CRGENV` to provide additional
+        environment variables to cargo.
 
         Note: if `deps` is empty, this build edge will always be rebuilt to let `cargo` determine
         the required actions.
@@ -764,12 +766,54 @@ class Env:
         The `BuildPath` to the produced executable
         """
 
-        return self._rust(gen, out, deps, self.build_dir)
+        return self.rust(gen, [out], deps, self.build_dir)[0]
 
-    def _rust(self, gen: Generator, out: str, deps: list[str], installDir) -> BuildPath:
-        # determine destination based on flags
+    def rust(self, gen: Generator, outs: list[str], deps: list[str],
+             install_dir: str = None) -> [BuildPath]:
+        """
+        Produces multiple Rust libraries or executables
+
+        This method runs `cargo` in the current directory and therefore expects a `Cargo.toml`. The
+        `--target-dir` argument will be pass to cargo according to `Env.build_dir` and `RUSTBINS`.
+        The location of the produced files will be determined by the `--target` argument in
+        `CRGFLAGS`, if present. The produced files will be installed to the build directory
+        (`Env.build_path`). You can also use `CRGENV` to provide additional environment variables to
+        cargo.
+
+        Note: if `deps` is empty, this build edge will always be rebuilt to let `cargo` determine
+        the required actions.
+
+        Parameters
+        ----------
+        :param gen: the generator
+        :param outs: the output files
+        :param deps: the additional list of dependencies
+        :param install_dir: the directory to install the output files to, if not `None`
+
+        Variables
+        ---------
+        :param `CRGFLAGS`: the flags (e.g., ['--release'])
+        :param `RUSTBINS`: an optional subdirectory in `Env.build_dir` for Rust outputs
+        :param `CRGENV`: additional environment variables
+
+        Returns
+        -------
+        A list of `BuildPath`s to the produced files
+        """
+
+        # determine whether cargo puts the output in a target-specific directory
+        target_dir = ''
+        try:
+            idx = self['CRGFLAGS'].index('--target')
+            target_dir = self['CRGFLAGS'][idx + 1] + '/'
+        except:
+            pass
+
+        # determine destination directory
         btype = 'release' if '--release' in self['CRGFLAGS'] else 'debug'
-        bin = BuildPath.new(self, self['RUSTBINS'] + '/' + btype + '/' + out)
+        dest_dir = BuildPath(self.build_dir + '/' + self['RUSTBINS'] + '/' + target_dir + btype)
+        out_paths = [BuildPath(dest_dir + '/' + o) for o in outs]
+
         flags = ' '.join(self['CRGFLAGS'])
         # make sure that cargo puts it there
         flags += ' --target-dir "' + os.path.abspath(self.build_dir + '/' + self['RUSTBINS']) + '"'
@@ -781,7 +825,7 @@ class Env:
 
         edge = BuildEdge(
             'cargo',
-            outs=[bin],
+            outs=out_paths,
             ins=[],
             deps=deps,
             vars={
@@ -792,7 +836,8 @@ class Env:
         )
         gen.add_build(edge)
 
-        # don't install it if the binary is already in installDir
-        if os.path.dirname(os.path.abspath(bin)) != os.path.abspath(installDir):
-            self.install(gen, installDir, bin)
-        return BuildPath(installDir + '/' + out)
+        # don't install it if the binary is already in install_dir
+        if install_dir is not None and os.path.abspath(dest_dir) != os.path.abspath(install_dir):
+            return [BuildPath(self.install(gen, install_dir, o)) for o in out_paths]
+        else:
+            return out_paths
