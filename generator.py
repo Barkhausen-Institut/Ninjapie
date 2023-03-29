@@ -136,9 +136,10 @@ class Generator:
     """
     The `Generator` collects rules and build edges and finally writes a Ninja build file.
 
-    The rules describe how a file is built, while a build edge describes one concrete file to build.
-    The generator comes with a number of builtin rules for C, C++, and Rust, but can be extended by
-    additional rules via `Generator.add_rule`. Build edges can be added with `Generator.add_build`.
+    The rules describe how specific file types are built (e.g., shared libraries), while a build
+    edge describes one concrete file to build. The generator comes with a number of builtin rules
+    for C, C++, and Rust, but can be extended by additional rules via `Generator.add_rule`. Build
+    edges can be added with `Generator.add_build`.
 
     Typically, the build edges are added to the generator via the environment (`Env`). For example,
     the method `Env.cc` will add a build edge for the rule `cc` to the generator that is given to
@@ -271,7 +272,7 @@ class Generator:
         Writes the Ninja build file according to the so far added rules and build edges.
 
         The written file is stored in `$NPBUILD/build.ninja` and will be overwritten, if it already
-        exists. Additionally, it will write a `$NPBUILD/.build.deps` file, which holds the
+        exists. Additionally, a `$NPBUILD/.build.deps` file will be written, which holds the
         dependencies of the regeneration rule. This regeneration rule defines when the build.ninja
         file needs to be regenerated and how. The rule therefore depends on all `build.py` files in
         the current directory or any subdirectory.

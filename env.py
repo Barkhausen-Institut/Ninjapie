@@ -540,7 +540,7 @@ class Env:
         """
         Produces the static library `"lib" + out + ".a"` from given input files
 
-        The input files can be file type that `Env.objs` supports.
+        The input files can be all file types that `Env.objs` supports.
 
         Parameters
         ----------
@@ -578,7 +578,7 @@ class Env:
         """
         Produces the shared library `"lib" + out + ".so"` from given input files
 
-        The input files can be file type that `Env.objs` supports.
+        The input files can be all file types that `Env.objs` supports.
 
         Parameters
         ----------
@@ -615,7 +615,7 @@ class Env:
         """
         Produces a C executable from given input files
 
-        The input files can be file type that `Env.objs` supports.
+        The input files can be all file types that `Env.objs` supports.
 
         Parameters
         ----------
@@ -643,7 +643,7 @@ class Env:
         """
         Produces a C++ executable from given input files
 
-        The input files can be file type that `Env.objs` supports.
+        The input files can be all file types that `Env.objs` supports.
 
         Parameters
         ----------
