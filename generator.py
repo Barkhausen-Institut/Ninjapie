@@ -1,5 +1,6 @@
 import os
 import re
+import traceback
 from glob import glob
 
 
@@ -101,6 +102,7 @@ class BuildEdge:
 
         assert len(outs) > 0, "The list of output files cannot be empty"
 
+        self.calltrace = None
         self.rule = rule
         self.outs = outs
         self.ins = ins
@@ -156,6 +158,7 @@ class Generator:
         """
 
         self._build_dir = os.environ.get('NPBUILD')
+        self._debug = os.environ.get('NPDEBUG', '0') == '1'
         self._rules = {}
         self._build_edges = []
         self._globs = []
@@ -248,6 +251,15 @@ class Generator:
         """
 
         assert edge.rule in self._rules
+
+        if self._debug:
+            for b in self._build_edges:
+                for o in edge.outs:
+                    assert o not in b.outs, \
+                        "Output '{}' is already produced by the build edge added here:\n{}".format(
+                            o, ''.join(traceback.format_list(b.calltrace)))
+            edge.calltrace = traceback.extract_stack()
+
         self._rules[edge.rule].refs += 1
         self._build_edges.append(edge)
 
