@@ -99,6 +99,8 @@ class BuildEdge:
         :param lib_path: when producing executables, a list of paths to search the libraries in
         """
 
+        assert len(outs) > 0, "The list of output files cannot be empty"
+
         self.rule = rule
         self.outs = outs
         self.ins = ins
