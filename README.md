@@ -58,14 +58,14 @@ Ninjapie also supports globbing via `Env.glob`. For example, you can build all C
 ```Python
 env.c_exe(gen, out='hello', ins=env.glob(gen, '*.c'))
 ```
-Note however that globbing has the side effect that the required build steps might change on added or removed files. For that reason, Ninjapie records the glob patterns and regenerates the ninja build file whenever any file is added or removed. In other words, using `Env.glob` is a trade-off between more convenience and faster builds, because Ninjapie needs to perform additional checks for globs. Therefore, using globbing extensively might cause a measurable overhead. Note that this also means that *only* this function should be used for globbing, because all other ways bypass Ninjapie and therefore lead to potentially outdated ninja build files.
+Note however that globbing has the side effect that the required build steps might change on added or removed files. For that reason, Ninjapie records the glob patterns and regenerates the Ninja build file whenever any file is added or removed. In other words, using `Env.glob` is a trade-off between more convenience and faster builds, because Ninjapie needs to perform additional checks for globs. Therefore, using globbing extensively might cause a measurable overhead. Note that this also means that *only* this function should be used for globbing, because all other ways bypass Ninjapie and therefore lead to potentially outdated Ninja build files.
 
 # Examples
 
-You can find several examples in the `tests` directory. They show how Ninjapie can be used for several language, demonstrate the features of Ninjapie, and verify its correctness.
+You can find several examples in the `tests` directory. They show how Ninjapie can be used for several languages, demonstrate the features of Ninjapie, and verify its correctness.
 
 # Limitations
 
 - Ninjapie is currently focused on Linux. The API should be general enough so that it can be adapted for other platforms, but this has not been done yet.
 - Currently there is only builtin support for Assembler, C, C++, and Rust.
-- In general, the feature set is currently minimal. While this is also good news, it means that it might not have builtin support for some use case you have. However, as custom rules and build edges can be created and Ninjapie is Python-based, support for these use cases can be implemented on top.
+- In general, the feature set is currently minimal. While this is also good news, it means that it might not have builtin support for some use case you have. However, as custom rules and build edges can be created and Ninjapie is Python-based, support for these use cases can be implemented on top (see `tests/latex` as an example).
