@@ -1,0 +1,46 @@
+[build-system]
+requires      = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ninjapie"
+version = "1.0.0"
+description = "Ninja-based build system with a Python API"
+readme = "README.md"
+authors = [{ name = "Nils Asmussen", email = "nils.asmussen@barkhauseninstitut.org" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["build system", "ninja"]
+dependencies = []
+requires-python = ">=3.5"
+
+[project.urls]
+Homepage = "https://github.com/Barkhausen-Institut/Ninjapie"
+
+[project.scripts]
+ninjapie = "ninjapie.__main__:main"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+exclude = ["coverage*", "tests*"]
+
+[tool.bumpver]
+current_version = "1.0.0"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message  = "Bump version {old_version} -> {new_version}."
+commit          = true
+tag             = true
+push            = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = ['current_version = "{version}"', 'version = "{version}"']
+"ninjapie/__init__.py" = ["{version}"]

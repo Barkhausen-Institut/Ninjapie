@@ -1,7 +1,10 @@
 #!/bin/bash
 
 root=$(dirname "$(dirname "$(readlink -f "$0")")")
-export PATH="$root:$PATH"
+
+ninjapie() {
+    python3 "$root/ninjapie/__main__.py" "$@"
+}
 
 success=0
 failed=0

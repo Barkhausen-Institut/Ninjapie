@@ -3,4 +3,5 @@ build
 .build.deps
 /coverage
 .coverage
+/dist
 Cargo.lock

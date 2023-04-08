@@ -3,8 +3,8 @@ from glob import glob
 import importlib
 import os
 
-from path import BuildPath, SourcePath
-from generator import BuildEdge, Generator
+from ninjapie.path import BuildPath, SourcePath
+from ninjapie.generator import BuildEdge, Generator
 
 
 class Env:
