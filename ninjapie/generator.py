@@ -473,7 +473,7 @@ class Generator:
                         if shname in libs[path]:
                             edge.deps.append(libs[path][shname])
                             break
-                        elif stname in libs[path]:
+                        if stname in libs[path]:
                             edge.deps.append(libs[path][stname])
                             break
 

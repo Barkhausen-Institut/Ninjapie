@@ -43,10 +43,9 @@ class SourcePath(str):
 
         if isinstance(path, SourcePath):
             return SourcePath(path._path)
-        elif isinstance(path, BuildPath):
+        if isinstance(path, BuildPath):
             return SourcePath(path._path)
-        else:
-            return SourcePath(env.cur_dir + '/' + path)
+        return SourcePath(env.cur_dir + '/' + path)
 
     def __str__(self) -> str:
         return self._path
@@ -99,10 +98,9 @@ class BuildPath(str):
 
         if isinstance(path, BuildPath):
             return BuildPath(path._path)
-        elif isinstance(path, SourcePath):
+        if isinstance(path, SourcePath):
             return BuildPath(env.build_dir + '/' + path._path)
-        else:
-            return BuildPath(env.build_dir + '/' + env.cur_dir + '/' + path)
+        return BuildPath(env.build_dir + '/' + env.cur_dir + '/' + path)
 
     def with_file_ext(env, path, ext: str):
         """
@@ -125,10 +123,9 @@ class BuildPath(str):
         (root, cur_ext) = os.path.splitext(path)
         if isinstance(path, BuildPath):
             return BuildPath(root + '.' + ext)
-        elif isinstance(path, SourcePath):
+        if isinstance(path, SourcePath):
             return BuildPath.new(env, SourcePath(root + '.' + ext))
-        else:
-            return BuildPath.new(env, root + '.' + ext)
+        return BuildPath.new(env, root + '.' + ext)
 
     def __str__(self) -> str:
         return self._path
