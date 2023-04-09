@@ -123,7 +123,7 @@ class BuildPath(str):
         A `BuildPath` object
         """
 
-        (root, cur_ext) = os.path.splitext(path)
+        (root, _cur_ext) = os.path.splitext(path)
         if isinstance(path, BuildPath):
             return BuildPath(root + '.' + ext)
         if isinstance(path, SourcePath):
