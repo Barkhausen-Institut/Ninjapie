@@ -7,6 +7,7 @@ import sys
 
 def all_files(build_dir):
     """Collects a string with all files found by the patters in the globs file"""
+
     files = ''
     try:
         with open(build_dir + '/.build.globs', 'r') as file:
@@ -19,6 +20,8 @@ def all_files(build_dir):
 
 
 def clean(build_dir, args, ninja_args):
+    """Implements the clean command"""
+
     def remove_dir(path):
         """Removes the given directory recursively"""
         for d in os.listdir(path):
@@ -33,6 +36,8 @@ def clean(build_dir, args, ninja_args):
 
 
 def build(build_dir, args, ninja_args):
+    """Implements the build command"""
+
     reconf = args.force_regen
     root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     all_files_path = build_dir + '/.build.files'
@@ -81,6 +86,8 @@ def build(build_dir, args, ninja_args):
 
 
 def main(argv=None):
+    """Main entry point"""
+
     if argv is None:
         argv = sys.argv[1:]
 
