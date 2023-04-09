@@ -215,10 +215,10 @@ class Env:
         :param flags: the flags to remove
         """
 
-        for f in flags:
+        for flag in flags:
             assert isinstance(self._vars[var], list)
-            if f in self._vars[var]:
-                self._vars[var].remove(f)
+            if flag in self._vars[var]:
+                self._vars[var].remove(flag)
 
     def sub_build(self, gen: Generator, dir: str):
         """
@@ -252,8 +252,8 @@ class Env:
         gen._add_build_file(self.cur_dir + '/build.py')
 
         mod_path = self.cur_dir[2:].replace('/', '.')
-        b = importlib.import_module(mod_path + '.build')
-        b.build(gen, self)
+        sub = importlib.import_module(mod_path + '.build')
+        sub.build(gen, self)
 
         self._cwd.path = old_cwd
 

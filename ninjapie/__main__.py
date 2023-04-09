@@ -24,11 +24,11 @@ def clean(build_dir, _args, _ninja_args):
 
     def remove_dir(path):
         """Removes the given directory recursively"""
-        for d in os.listdir(path):
+        for entry in os.listdir(path):
             try:
-                remove_dir(path + '/' + d)
+                remove_dir(path + '/' + entry)
             except OSError:
-                os.remove(path + '/' + d)
+                os.remove(path + '/' + entry)
         os.rmdir(path)
 
     remove_dir(build_dir)
