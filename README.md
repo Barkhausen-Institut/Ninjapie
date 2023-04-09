@@ -19,9 +19,15 @@ In contrast to other Ninja frontends like [Meson](https://mesonbuild.com), Ninja
 
 Ninjagen is implemented as a simple yet powerful Python library of about 500 lines. For that reason, it is easy to understand and to customize.
 
-# Getting Started
+# Installation
 
-To use Ninjapie, simply clone this repository and put a symlink to `ninjapie` somewhere in your `PATH`. You can afterwards run `ninjapie` in your project directory to build it.
+You can install Ninjapie via pip:
+
+```Shell
+$ pip install ninjapie
+```
+
+You can afterwards run `ninjapie` in your project directory to build it.
 
 # How does Ninjapie work?
 
