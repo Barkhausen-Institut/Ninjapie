@@ -17,6 +17,8 @@ case "$1" in
         fi
         res=0
         pylint --disable "$disabled" $(git ls-files 'ninjapie/*.py') || res=1
+        ninjapiepath="$(dirname "$(readlink -f "$0")")/ninjapie"
+        export PYTHONPATH="$ninjapiepath:$PYTHONPATH"
         pylint --disable "$disabled,R0801,W0621" $(git ls-files 'tests/*.py') || res=1
         exit $res
         ;;
