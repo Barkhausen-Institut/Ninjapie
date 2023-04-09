@@ -425,7 +425,7 @@ class Env:
         flags += ' ' + ' '.join(['-I' + i for i in self['CPPPATH']])
         return self._cc(gen, out, ins, flags)
 
-    def cc(self, gen: Generator, out: str, ins: list[str]) -> BuildPath:
+    def cc(self, gen: Generator, out: str, ins: list[str]) -> BuildPath:  # pylint: disable=C0103
         """
         Runs the C compiler on the given input files
 
