@@ -1,4 +1,4 @@
-name: Pylint
+name: Tests
 
 on: [push]
 
@@ -15,9 +15,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
+      run: sudo apt-get install -y ninja-build texlive-latex-base
+    - name: Running tests
       run: |
-        python -m pip install --upgrade pip
-        pip install pylint
-    - name: Analysing the code with pylint
-      run: |
-        ./dist.sh lint
+        ./dist.sh test
