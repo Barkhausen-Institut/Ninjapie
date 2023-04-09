@@ -9,6 +9,14 @@ case "$1" in
         cd tests && ./runcov.sh
         ;;
 
+    lint)
+        disabled="C0115,C0116,C0114,W0212,W0622,R0903,R0913,R0904,R0902,C0209"
+        res=0
+        pylint --disable "$disabled" $(git ls-files 'ninjapie/*.py') || res=1
+        pylint --disable "$disabled,R0801,W0621" $(git ls-files 'tests/*.py') || res=1
+        exit $res
+        ;;
+
     dist)
         python -m build
         rm -rf ninjapie.egg-info
@@ -23,7 +31,7 @@ case "$1" in
         ;;
 
     *)
-        echo "Usage: $0 test|cov|dist|upload|patch|minor|major" >&2
+        echo "Usage: $0 test|cov|lint|dist|upload|patch|minor|major" >&2
         exit 1
         ;;
 esac
