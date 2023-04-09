@@ -797,7 +797,7 @@ class Env:
         try:
             idx = self['CRGFLAGS'].index('--target')
             target_dir = self['CRGFLAGS'][idx + 1] + '/'
-        except:
+        except ValueError:
             pass
 
         # determine destination directory

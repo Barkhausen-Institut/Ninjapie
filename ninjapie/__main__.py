@@ -57,14 +57,13 @@ def build(build_dir, args, ninja_args):
             reconf = old_files != new_files
         except FileNotFoundError:
             reconf = True
-            pass
 
     # run configure if not done before or it's required
     if reconf or not os.path.isfile(build_file):
         try:
             # run build.py, but don't write *.pyc files
             subprocess.check_call(['python3', '-B', 'build.py'])
-        except:
+        except Exception:  # pylint: disable=W0718
             return 1
 
         # store new list of files from globs
@@ -75,7 +74,7 @@ def build(build_dir, args, ninja_args):
     # now build everything with ninja
     try:
         subprocess.check_call(['ninja', '-f', build_file] + ninja_args, stdout=sys.stderr.buffer)
-    except:
+    except Exception:  # pylint: disable=W0718
         # ensure that we regenerate the build.ninja next time. Since ninja does not accept the
         # build.ninja, it will also not detect changes our build files in order to regenerate it.
         # Therefore, force a regenerate next time by removing the file.
@@ -121,7 +120,7 @@ def main(argv=None):
         ninja_start = argv.index('--')
         ninja_args = argv[ninja_start + 1:]
         our_args = argv[0:ninja_start]
-    except:
+    except ValueError:
         ninja_args = []
         our_args = argv
 
@@ -129,7 +128,8 @@ def main(argv=None):
     args = parser.parse_args(our_args)
     try:
         res = args.func(build_dir, args, ninja_args)
-    except:
+    except AttributeError:
+        # if func attribute is not found, fall back to default: build
         args.force_regen = False
         res = build(build_dir, args, ninja_args)
     return res
