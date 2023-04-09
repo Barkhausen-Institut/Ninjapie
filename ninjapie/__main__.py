@@ -51,7 +51,8 @@ def build(build_dir, args, ninja_args):
     if not reconf:
         try:
             # check whether files have been added or removed
-            old_files = open(all_files_path, 'r', encoding='utf-8').read()
+            with open(all_files_path, 'r', encoding='utf-8') as file:
+                old_files = file.read()
             new_files = all_files(build_dir)
             # if the list of files changed, we need to reconfigure
             reconf = old_files != new_files
