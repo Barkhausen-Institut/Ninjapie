@@ -23,6 +23,7 @@ class SourcePath(str):
 
         self._path = path
 
+    @staticmethod
     def new(env, path):
         """
         Creates a new `SourcePath` from given path object
@@ -77,6 +78,7 @@ class BuildPath(str):
 
         self._path = path
 
+    @staticmethod
     def new(env, path):
         """
         Creates a new `BuildPath` from given path object
@@ -102,6 +104,7 @@ class BuildPath(str):
             return BuildPath(env.build_dir + '/' + path._path)
         return BuildPath(env.build_dir + '/' + env.cur_dir + '/' + path)
 
+    @staticmethod
     def with_file_ext(env, path, ext: str):
         """
         Creates a new `BuildPath` from given path object and file extension
