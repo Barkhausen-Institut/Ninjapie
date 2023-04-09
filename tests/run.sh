@@ -46,8 +46,12 @@ done < <(find . -mindepth 1 -maxdepth 1 -type d -print0)
 printf "\nIn total: "
 if [ $failed -eq 0 ]; then
     /bin/echo -n -e "\e[1;32m"
+    res=0
 else
     /bin/echo -n -e "\e[1;31m"
+    res=1
 fi
 printf "%d of %d tests successful\n" $success $((success + failed))
 /bin/echo -e "\e[0m"
+
+exit $res
