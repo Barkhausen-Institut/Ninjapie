@@ -19,7 +19,7 @@ def all_files(build_dir):
     return files
 
 
-def clean(build_dir, args, ninja_args):
+def clean(build_dir, _args, _ninja_args):
     """Implements the clean command"""
 
     def remove_dir(path):
