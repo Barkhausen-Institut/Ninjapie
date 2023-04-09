@@ -383,7 +383,7 @@ class Generator:
             base_dir = os.getcwd()
             count = 0
             for edge in self._build_edges:
-                if edge.rule == 'cxx' or edge.rule == 'cc':
+                if edge.rule in ('cxx', 'cc'):
                     assert len(edge.ins) == 1
                     if count > 0:
                         cmds.write(',\n')
