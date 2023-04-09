@@ -611,7 +611,7 @@ class Env:
         return lib
 
     def c_exe(self, gen: Generator, out: str, ins: list[str],
-              libs: list[str] = [], deps: list[str] = []) -> BuildPath:
+              libs: list[str] = None, deps: list[str] = None) -> BuildPath:
         """
         Produces a C executable from given input files
 
@@ -636,10 +636,12 @@ class Env:
         The `BuildPath` to the produced executable
         """
 
+        libs = [] if libs is None else libs
+        deps = [] if deps is None else deps
         return self._c_cxx_exe(gen, out, ins, libs, deps, self['CC'])
 
     def cxx_exe(self, gen: Generator, out: str, ins: list[str],
-                libs: list[str] = [], deps: list[str] = []) -> BuildPath:
+                libs: list[str] = None, deps: list[str] = None) -> BuildPath:
         """
         Produces a C++ executable from given input files
 
@@ -664,6 +666,8 @@ class Env:
         The `BuildPath` to the produced executable
         """
 
+        libs = [] if libs is None else libs
+        deps = [] if deps is None else deps
         return self._c_cxx_exe(gen, out, ins, libs, deps, self['CXX'])
 
     def _c_cxx_exe(self, gen: Generator, out: str, ins: list[str],
@@ -692,7 +696,7 @@ class Env:
         gen.add_build(edge)
         return bin
 
-    def rust_lib(self, gen: Generator, out: str, deps: list[str] = []) -> BuildPath:
+    def rust_lib(self, gen: Generator, out: str, deps: list[str] = None) -> BuildPath:
         """
         Produces a Rust library
 
@@ -722,9 +726,10 @@ class Env:
         The `BuildPath` to the produced static library
         """
 
+        deps = [] if deps is None else deps
         return self.rust(gen, ['lib' + out + '.a'], deps)[0]
 
-    def rust_exe(self, gen: Generator, out: str, deps: list[str] = []) -> BuildPath:
+    def rust_exe(self, gen: Generator, out: str, deps: list[str] = None) -> BuildPath:
         """
         Produces a Rust executable
 
@@ -754,6 +759,7 @@ class Env:
         The `BuildPath` to the produced executable
         """
 
+        deps = [] if deps is None else deps
         return self.rust(gen, [out], deps)[0]
 
     def rust(self, gen: Generator, outs: list[str], deps: list[str]) -> [BuildPath]:

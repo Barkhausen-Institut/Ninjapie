@@ -84,8 +84,8 @@ class BuildEdge:
     the output files. Additional dependencies can be specified to also trigger a rebuild.
     """
 
-    def __init__(self, rule: str, outs: list[str], ins: list[str], deps: list[str] = [],
-                 vars: dict[str, str] = {}, libs: list[str] = [], lib_path: list[str] = []):
+    def __init__(self, rule: str, outs: list[str], ins: list[str], deps: list[str] = None,
+                 vars: dict[str, str] = None, libs: list[str] = None, lib_path: list[str] = None):
         """
         Creates a new build edge.
 
@@ -101,6 +101,11 @@ class BuildEdge:
         """
 
         assert len(outs) > 0, "The list of output files cannot be empty"
+
+        deps = [] if deps is None else deps
+        vars = {} if vars is None else vars
+        libs = [] if libs is None else libs
+        lib_path = [] if lib_path is None else lib_path
 
         self.calltrace = None
         self.rule = rule

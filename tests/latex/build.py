@@ -2,7 +2,8 @@ from ninjapie import Generator, Env, Rule, BuildEdge, BuildPath, SourcePath
 
 
 class LatexEnv(Env):
-    def tex(self, gen, input, deps=[]):
+    def tex(self, gen, input, deps=None):
+        deps = [] if deps is None else deps
         pdf = BuildPath.with_file_ext(self, input, 'pdf')
         gen.add_build(BuildEdge(
             'tex',
