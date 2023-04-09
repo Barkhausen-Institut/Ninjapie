@@ -10,7 +10,7 @@ def all_files(build_dir):
 
     files = ''
     try:
-        with open(build_dir + '/.build.globs', 'r') as file:
+        with open(build_dir + '/.build.globs', 'r', encoding='utf-8') as file:
             for line in file.readlines():
                 files += '\n'.join(glob(line.strip(), recursive=True))
                 files += '\n'
@@ -51,7 +51,7 @@ def build(build_dir, args, ninja_args):
     if not reconf:
         try:
             # check whether files have been added or removed
-            old_files = open(all_files_path, 'r').read()
+            old_files = open(all_files_path, 'r', encoding='utf-8').read()
             new_files = all_files(build_dir)
             # if the list of files changed, we need to reconfigure
             reconf = old_files != new_files
@@ -69,7 +69,7 @@ def build(build_dir, args, ninja_args):
 
         # store new list of files from globs
         new_files = all_files(build_dir)
-        with open(all_files_path, 'w') as file:
+        with open(all_files_path, 'w', encoding='utf-8') as file:
             file.write(new_files)
 
     # now build everything with ninja
