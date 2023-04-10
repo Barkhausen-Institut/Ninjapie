@@ -244,6 +244,11 @@ class Env:
 
         This example would produce `libsub.a` in the subdirectory and use it to produce the `hello`
         executable in the root directory.
+
+        Parameters
+        ----------
+        :param gen: the generator
+        :param dir: the subdirectory to enter
         """
 
         old_cwd = self.cur_dir
@@ -273,6 +278,15 @@ class Env:
         additional checks for globs. Note that this also means that *only* this function should be
         used for globbing, because all other ways bypass Ninjapie and therefore lead to potentially
         outdated ninja build files.
+
+        Parameters
+        ----------
+        :param gen: the generator
+        :param pattern: the pattern for globbing
+
+        Returns
+        -------
+        The list of found files as `SourcePath` objects
         """
 
         pat = SourcePath.new(self, pattern)
@@ -622,7 +636,7 @@ class Env:
         :param gen: the generator
         :param out: the output file
         :param ins: the list of input files
-        :param libs: the list of libraries that the executable should be linked against
+        :param libs: the list of library names that the executable should be linked against
         :param deps: the additional list of dependencies
 
         Variables
@@ -652,7 +666,7 @@ class Env:
         :param gen: the generator
         :param out: the output file
         :param ins: the list of input files
-        :param libs: the list of libraries that the executable should be linked against
+        :param libs: the list of library names that the executable should be linked against
         :param deps: the additional list of dependencies
 
         Variables
