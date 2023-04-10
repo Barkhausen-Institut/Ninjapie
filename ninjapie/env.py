@@ -249,6 +249,10 @@ class Env:
         ----------
         :param gen: the generator
         :param dir: the subdirectory to enter
+
+        Returns
+        -------
+        The return value of the build function in the subdirectory
         """
 
         old_cwd = self.cur_dir
@@ -258,9 +262,10 @@ class Env:
 
         mod_path = self.cur_dir[2:].replace('/', '.')
         sub = importlib.import_module(mod_path + '.build')
-        sub.build(gen, self)
+        res = sub.build(gen, self)
 
         self._cwd.path = old_cwd
+        return res
 
     def glob(self, gen: Generator, pattern: str) -> list[SourcePath]:
         """
