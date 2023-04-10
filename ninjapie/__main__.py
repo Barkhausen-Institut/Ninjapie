@@ -4,6 +4,10 @@ import os
 import subprocess
 import sys
 
+# read __version__ from relative from file to avoid that we need the ninjapie package
+with open(os.path.dirname(__file__) + '/version.py', encoding='utf-8') as vfile:
+    exec(vfile.read())  # pylint: disable=W0122
+
 
 def all_files(build_dir):
     """Collects a string with all files found by the patters in the globs file"""
@@ -102,6 +106,10 @@ def main(argv=None):
         'Besides the supported command line arguments all additional arguments, '
         'preceeded by "--", will be passed to ninja. For example "ninjapie -- -v".'
     )
+    version = __version__  # pylint: disable=E0602
+    parser.add_argument('--version', action='version',
+                        version='%(prog)s {version}'.format(version=version))
+
     subparsers = parser.add_subparsers(
         title='commands',
         description='The command to execute (build by default)',

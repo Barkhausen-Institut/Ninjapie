@@ -43,4 +43,4 @@ push            = false
 
 [tool.bumpver.file_patterns]
 "pyproject.toml" = ['current_version = "{version}"', 'version = "{version}"']
-"ninjapie/__init__.py" = ["{version}"]
+"ninjapie/version.py" = ["{version}"]
