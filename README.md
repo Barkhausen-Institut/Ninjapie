@@ -1,3 +1,6 @@
+[![PyPI version](https://badge.fury.io/py/ninjapie.svg)](https://badge.fury.io/py/ninjapie)
+![pylint](https://github.com/Barkhausen-Institut/Ninjapie/actions/workflows/pylint.yml/badge.svg)
+
 Ninjapie
 ========
 
