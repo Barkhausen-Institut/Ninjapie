@@ -30,6 +30,7 @@ check_run() {
 check_error() {
     tmp=$(mktemp)
     NPDEBUG=1 ninjapie -- -v 2>&1 | tee "$tmp"
+    [ "${PIPESTATUS[0]}" -ne 0 ] || exit 1
     grep "$1" "$tmp" &>/dev/null || exit 1
     rm -f "$tmp"
 }
