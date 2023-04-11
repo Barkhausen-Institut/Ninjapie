@@ -259,8 +259,12 @@ class Generator:
 
         if self._debug:
             for ex_edge in self._build_edges:
+                # skip edges that don't have a calltrace (e.g., the always-rebuild rule)
+                if ex_edge.calltrace is None:
+                    continue
+
                 for out in ex_edge.outs:
-                    assert out not in ex_edge.outs, \
+                    assert out not in edge.outs, \
                         "Output '{}' is already produced by the build edge added here:\n{}".format(
                             out, ''.join(traceback.format_list(ex_edge.calltrace)))
             edge.calltrace = traceback.extract_stack()
