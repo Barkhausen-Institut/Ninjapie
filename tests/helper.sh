@@ -26,3 +26,10 @@ check_run() {
         exit 1
     fi
 }
+
+check_error() {
+    tmp=$(mktemp)
+    NPDEBUG=1 ninjapie -- -v 2>&1 | tee "$tmp"
+    grep "$1" "$tmp" &>/dev/null || exit 1
+    rm -f "$tmp"
+}
