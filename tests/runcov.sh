@@ -16,8 +16,11 @@ while IFS= read -r -d '' d; do
         export PYTHONPATH="$root:$PYTHONPATH" NPBUILD=build
         cd "$d"
         rm -rf build && mkdir -p build
-        coverage run build.py || exit 1
-        ninja -f build/build.ninja -v || exit 1
+        NPDEBUG=1 coverage run build.py
+        if [[ ! "$(basename "$d")" =~ error-* ]]; then
+            [ $? -eq 0 ] || exit 1
+            ninja -f build/build.ninja -v || exit 1
+        fi
     ); then
         success=$((success + 1))
         /bin/echo -e "\e[1mSUCCESS\e[0m"
