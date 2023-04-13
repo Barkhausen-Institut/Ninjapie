@@ -68,7 +68,10 @@ def build(build_dir, args, ninja_args):
         try:
             # run build.py, but don't write *.pyc files
             subprocess.check_call(['python3', '-B', 'build.py'])
-        except (Exception, KeyboardInterrupt):  # pylint: disable=W0718
+        except KeyboardInterrupt:
+            return 1
+        except Exception as exc:  # pylint: disable=W0718
+            print("Executing build.py failed:", exc)
             return 1
 
         # store new list of files from globs
@@ -79,10 +82,14 @@ def build(build_dir, args, ninja_args):
     # now build everything with ninja
     try:
         subprocess.check_call(['ninja', '-f', build_file] + ninja_args, stdout=sys.stderr.buffer)
-    except (Exception, KeyboardInterrupt):  # pylint: disable=W0718
+    except KeyboardInterrupt:
         # ensure that we regenerate the build.ninja next time. Since ninja does not accept the
         # build.ninja, it will also not detect changes our build files in order to regenerate it.
         # Therefore, force a regenerate next time by removing the file.
+        os.remove(all_files_path)
+        return 1
+    except Exception as exc:  # pylint: disable=W0718
+        print("Running ninja failed:", exc)
         os.remove(all_files_path)
         return 1
 
