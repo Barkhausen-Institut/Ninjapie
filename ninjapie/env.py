@@ -1,7 +1,8 @@
 import copy
 from glob import glob
-import importlib
+import importlib.util
 import os
+import sys
 
 from ninjapie.path import BuildPath, SourcePath
 from ninjapie.generator import BuildEdge, Generator
@@ -260,8 +261,14 @@ class Env:
 
         gen._add_build_file(self.cur_dir + '/build.py')
 
+        # import module
         mod_path = self.cur_dir[2:].replace('/', '.')
-        sub = importlib.import_module(mod_path + '.build')
+        spec = importlib.util.spec_from_file_location(mod_path, self.cur_dir + '/build.py')
+        sub = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = sub
+        spec.loader.exec_module(sub)
+
+        # call build function in module
         res = sub.build(gen, self)
 
         self._cwd.path = old_cwd
