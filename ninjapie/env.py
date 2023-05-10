@@ -72,7 +72,7 @@ class Env:
         self._vars['LIBPATH'] = []
 
         # default rust settings
-        self._vars['RUSTBINS'] = '.'
+        self._vars['RUSTOUT'] = '.'
         self._vars['CRGFLAGS'] = []
         self._vars['CRGENV'] = {}
 
@@ -728,7 +728,7 @@ class Env:
 
         This method runs `cargo` in the current directory and therefore expects a `Cargo.toml` that
         produces a static Rust library. The `--target-dir` argument will be pass to cargo according
-        to `Env.build_dir` and `RUSTBINS`. The location of the produced file will be determined by
+        to `Env.build_dir` and `RUSTOUT`. The location of the produced file will be determined by
         the `--target` and `--release` arguments in `CRGFLAGS`, if present. You can also use
         `CRGENV` to provide additional environment variables to cargo.
 
@@ -744,7 +744,7 @@ class Env:
         Variables
         ---------
         :param `CRGFLAGS`: the flags (e.g., ['--release'])
-        :param `RUSTBINS`: an optional subdirectory in `Env.build_dir` for Rust outputs
+        :param `RUSTOUT`: an optional subdirectory in `Env.build_dir` for Rust outputs
         :param `CRGENV`: additional environment variables
 
         Returns
@@ -761,7 +761,7 @@ class Env:
 
         This method runs `cargo` in the current directory and therefore expects a `Cargo.toml` that
         produces a binary. The `--target-dir` argument will be pass to cargo according to
-        `Env.build_dir` and `RUSTBINS`. The location of the produced file will be determined by the
+        `Env.build_dir` and `RUSTOUT`. The location of the produced file will be determined by the
         `--target` and `--release` arguments in `CRGFLAGS`, if present. You can also use `CRGENV` to
         provide additional environment variables to cargo.
 
@@ -777,7 +777,7 @@ class Env:
         Variables
         ---------
         :param `CRGFLAGS`: the flags (e.g., ['--release'])
-        :param `RUSTBINS`: an optional subdirectory in `Env.build_dir` for Rust outputs
+        :param `RUSTOUT`: an optional subdirectory in `Env.build_dir` for Rust outputs
         :param `CRGENV`: additional environment variables
 
         Returns
@@ -793,7 +793,7 @@ class Env:
         Produces multiple Rust libraries or executables
 
         This method runs `cargo` in the current directory and therefore expects a `Cargo.toml`. The
-        `--target-dir` argument will be pass to cargo according to `Env.build_dir` and `RUSTBINS`.
+        `--target-dir` argument will be pass to cargo according to `Env.build_dir` and `RUSTOUT`.
         The location of the produced files will be determined by the `--target` and `--release`
         arguments in `CRGFLAGS`, if present. You can also use `CRGENV` to provide additional
         environment variables to cargo.
@@ -810,7 +810,7 @@ class Env:
         Variables
         ---------
         :param `CRGFLAGS`: the flags (e.g., ['--release'])
-        :param `RUSTBINS`: an optional subdirectory in `Env.build_dir` for Rust outputs
+        :param `RUSTOUT`: an optional subdirectory in `Env.build_dir` for Rust outputs
         :param `CRGENV`: additional environment variables
 
         Returns
@@ -828,12 +828,12 @@ class Env:
 
         # determine destination directory
         btype = 'release' if '--release' in self['CRGFLAGS'] else 'debug'
-        dest_dir = BuildPath(self.build_dir + '/' + self['RUSTBINS'] + '/' + target_dir + btype)
+        dest_dir = BuildPath(self.build_dir + '/' + self['RUSTOUT'] + '/' + target_dir + btype)
         out_paths = [BuildPath(dest_dir + '/' + o) for o in outs]
 
         flags = ' '.join(self['CRGFLAGS'])
         # make sure that cargo puts it there
-        flags += ' --target-dir "' + os.path.abspath(self.build_dir + '/' + self['RUSTBINS']) + '"'
+        flags += ' --target-dir "' + os.path.abspath(self.build_dir + '/' + self['RUSTOUT']) + '"'
 
         # build environment variables
         vars_str = ''
