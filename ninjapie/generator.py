@@ -370,7 +370,7 @@ class Generator:
             for glb in self._globs:
                 file.write(glb + '\n')
 
-    def write_compile_cmds(self):
+    def write_compile_cmds(self, outdir: str = None):
         """
         Writes a `compiler_commands.json` file for `clangd`.
 
@@ -379,7 +379,8 @@ class Generator:
         existing. Note that only the rules `cxx` and `cc` are considered.
         """
 
-        outdir = self._build_dir
+        if outdir is None:
+            outdir = self._build_dir
 
         # generate compile_commands.json for clangd
         with open(outdir + '/compile_commands.json', 'w', encoding='utf-8') as cmds:
