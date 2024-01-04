@@ -698,9 +698,8 @@ class Env:
 
     def _c_cxx_exe(self, gen: Generator, out: str, ins: list[str],
                    libs: list[str], deps: list[str], linker: str) -> BuildPath:
-        flags = ''
+        flags = ' '.join(self['LINKFLAGS'])
         if len(libs) > 0:
-            flags += ' '.join(self['LINKFLAGS'])
             flags += ' ' + ' '.join(['-L' + dir for dir in self['LIBPATH']])
             flags += ' -Wl,--start-group'
             flags += ' ' + ' '.join(['-l' + lib for lib in libs])
