@@ -1,6 +1,7 @@
 import copy
 from glob import glob
 import importlib.util
+from pathlib import Path
 import os
 import sys
 
@@ -821,7 +822,13 @@ class Env:
         target_dir = ''
         try:
             idx = self['CRGFLAGS'].index('--target')
-            target_dir = self['CRGFLAGS'][idx + 1] + '/'
+            # if it's a path to the spec, the triple is the filename without extension
+            if self['CRGFLAGS'][idx + 1].endswith('.json'):
+                target_dir = Path(self['CRGFLAGS'][idx + 1]).stem
+            # otherwise it's already the triple we need
+            else:
+                target_dir = self['CRGFLAGS'][idx + 1]
+            target_dir += '/'
         except ValueError:
             pass
 
