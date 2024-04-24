@@ -320,7 +320,7 @@ class Generator:
 
         # rules and build edge to automatically regenerate the build.ninja
         self.add_rule('generator', Rule(
-            cmd='python -B build.py',
+            cmd='python3 -B build.py',
             depfile=outdir + '/.build.deps',
             pool='build_pool',
             generator='1',
