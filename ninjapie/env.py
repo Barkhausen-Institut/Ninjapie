@@ -637,6 +637,7 @@ class Env:
         gen.add_build(edge)
         return lib
 
+    # pylint: disable=R0917
     def c_exe(self, gen: Generator, out: str, ins: list[str],
               libs: list[str] = None, deps: list[str] = None) -> BuildPath:
         """
@@ -667,6 +668,7 @@ class Env:
         deps = [] if deps is None else deps
         return self._c_cxx_exe(gen, out, ins, libs, deps, self['CC'])
 
+    # pylint: disable=R0917
     def cxx_exe(self, gen: Generator, out: str, ins: list[str],
                 libs: list[str] = None, deps: list[str] = None) -> BuildPath:
         """
@@ -697,6 +699,7 @@ class Env:
         deps = [] if deps is None else deps
         return self._c_cxx_exe(gen, out, ins, libs, deps, self['CXX'])
 
+    # pylint: disable=R0917
     def _c_cxx_exe(self, gen: Generator, out: str, ins: list[str],
                    libs: list[str], deps: list[str], linker: str) -> BuildPath:
         flags = ' '.join(self['LINKFLAGS'])
