@@ -18,6 +18,7 @@ class Rule:
     purposes.
     """
 
+    # pylint: disable=R0917
     def __init__(self, cmd: str, desc: str, deps: str = '', depfile: str = '',
                  generator: str = '', pool: str = '', restat: bool = False):
         """
@@ -88,6 +89,7 @@ class BuildEdge:
     the output files. Additional dependencies can be specified to also trigger a rebuild.
     """
 
+    # pylint: disable=R0917
     def __init__(self, rule: str, outs: list[str], ins: list[str], deps: list[str] = None,
                  vars: dict[str, str] = None, libs: list[str] = None, lib_path: list[str] = None):
         """
