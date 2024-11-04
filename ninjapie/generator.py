@@ -4,6 +4,10 @@ import traceback
 from glob import glob
 
 
+def path_list(paths: list[str]) -> str:
+    return ' '.join(p.replace(' ', '$ ') for p in paths)
+
+
 class Rule:
     """
     Represents a rule in the ninja build files.
@@ -132,9 +136,9 @@ class BuildEdge:
         """
 
         file.write('build %s: %s %s' %
-                   (' '.join(self.outs), self.rule, ' '.join(self.ins)))
+                   (path_list(self.outs), self.rule, path_list(self.ins)))
         if len(self.deps) > 0:
-            file.write(' | %s' % (' '.join(self.deps)))
+            file.write(' | %s' % path_list(self.deps))
         file.write('\n')
         for key, val in self.vars.items():
             if key not in defaults or defaults[key] != val:
@@ -363,7 +367,7 @@ class Generator:
         # generate deps of build.ninja
         build_files = ['build.py'] + self._build_files
         with open(dep_file, 'w', encoding='utf-8') as file:
-            file.write(build_file + ': ' + ' '.join(build_files))
+            file.write(build_file + ': ' + path_list(build_files))
 
         # generate files with all globs
         with open(glob_file, 'w', encoding='utf-8') as file:
