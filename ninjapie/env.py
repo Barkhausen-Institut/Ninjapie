@@ -725,7 +725,7 @@ class Env:
         gen.add_build(edge)
         return bin
 
-    def rust_lib(self, gen: Generator, out: str, deps: list[str] = None) -> BuildPath:
+    def rust_lib(self, gen: Generator, out: str, deps: list[str] = None, dir: str = None) -> BuildPath:
         """
         Produces a Rust library
 
@@ -743,6 +743,7 @@ class Env:
         :param gen: the generator
         :param out: the output file
         :param deps: the additional list of dependencies
+        :param dir: the directory to run cargo in (`Env.cur_dir` by default)
 
         Variables
         ---------
@@ -756,9 +757,9 @@ class Env:
         """
 
         deps = [] if deps is None else deps
-        return self.rust(gen, ['lib' + out + '.a'], deps)[0]
+        return self.rust(gen, ['lib' + out + '.a'], deps, dir)[0]
 
-    def rust_exe(self, gen: Generator, out: str, deps: list[str] = None) -> BuildPath:
+    def rust_exe(self, gen: Generator, out: str, deps: list[str] = None, dir: str = None) -> BuildPath:
         """
         Produces a Rust executable
 
@@ -776,6 +777,7 @@ class Env:
         :param gen: the generator
         :param out: the output file
         :param deps: the additional list of dependencies
+        :param dir: the directory to run cargo in (`Env.cur_dir` by default)
 
         Variables
         ---------
@@ -789,9 +791,9 @@ class Env:
         """
 
         deps = [] if deps is None else deps
-        return self.rust(gen, [out], deps)[0]
+        return self.rust(gen, [out], deps, dir)[0]
 
-    def rust(self, gen: Generator, outs: list[str], deps: list[str]) -> [BuildPath]:
+    def rust(self, gen: Generator, outs: list[str], deps: list[str], dir: str = None) -> [BuildPath]:
         """
         Produces multiple Rust libraries or executables
 
@@ -809,6 +811,7 @@ class Env:
         :param gen: the generator
         :param outs: the output files
         :param deps: the additional list of dependencies
+        :param dir: the directory to run cargo in (`Env.cur_dir` by default)
 
         Variables
         ---------
@@ -856,7 +859,7 @@ class Env:
             deps=deps,
             vars={
                 'cargo': self['CARGO'],
-                'dir': self.cur_dir,
+                'dir': dir or self.cur_dir,
                 'cargoflags': 'build ' + flags,
                 'env': vars_str
             }
