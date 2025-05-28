@@ -74,6 +74,7 @@ class Env:
 
         # default rust settings
         self._vars['RUSTOUT'] = '.'
+        self._vars['RUSTCFLAGS'] = []
         self._vars['CRGFLAGS'] = []
         self._vars['CRGENV'] = {}
 
@@ -748,6 +749,7 @@ class Env:
         Variables
         ---------
         :param `CRGFLAGS`: the flags (e.g., ['--release'])
+        :param `RUSTCFLAGS`: the flags for rustc (e.g., ['-C opt-level=z'])
         :param `RUSTOUT`: an optional subdirectory in `Env.build_dir` for Rust outputs
         :param `CRGENV`: additional environment variables
 
@@ -782,6 +784,7 @@ class Env:
         Variables
         ---------
         :param `CRGFLAGS`: the flags (e.g., ['--release'])
+        :param `RUSTCFLAGS`: the flags for rustc (e.g., ['-C opt-level=z'])
         :param `RUSTOUT`: an optional subdirectory in `Env.build_dir` for Rust outputs
         :param `CRGENV`: additional environment variables
 
@@ -816,6 +819,7 @@ class Env:
         Variables
         ---------
         :param `CRGFLAGS`: the flags (e.g., ['--release'])
+        :param `RUSTCFLAGS`: the flags for rustc (e.g., ['-C opt-level=z'])
         :param `RUSTOUT`: an optional subdirectory in `Env.build_dir` for Rust outputs
         :param `CRGENV`: additional environment variables
 
@@ -843,9 +847,13 @@ class Env:
         dest_dir = BuildPath(self.build_dir + '/' + self['RUSTOUT'] + '/' + target_dir + btype)
         out_paths = [BuildPath(dest_dir + '/' + o) for o in outs]
 
+        cmd = 'build' if len(self['RUSTCFLAGS']) == 0 else 'rustc'
         flags = ' '.join(self['CRGFLAGS'])
         # make sure that cargo puts it there
         flags += ' --target-dir "' + os.path.abspath(self.build_dir + '/' + self['RUSTOUT']) + '"'
+        if len(self['RUSTCFLAGS']) > 0:
+            flags += ' -- '
+            flags += ' '.join(self['RUSTCFLAGS'])
 
         # build environment variables
         vars_str = ''
@@ -860,7 +868,7 @@ class Env:
             vars={
                 'cargo': self['CARGO'],
                 'dir': dir or self.cur_dir,
-                'cargoflags': 'build ' + flags,
+                'cargoflags': cmd + ' ' + flags,
                 'env': vars_str
             }
         )
