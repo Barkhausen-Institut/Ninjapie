@@ -1,5 +1,6 @@
 import copy
 from glob import glob
+import hashlib
 import importlib.util
 from pathlib import Path
 import os
@@ -42,7 +43,6 @@ class Env:
         etc.), compiler flags are empty, and paths are empty as well.
         """
 
-        self._id = 1
         self._cwd = Env._Location('.')
         self._build_dir = os.environ.get('NPBUILD')
         self._vars = {}
@@ -101,7 +101,6 @@ class Env:
         """
 
         env = type(self)()
-        env._id = self._id + 1
         env._cwd = self._cwd
         env._vars = copy.deepcopy(self._vars)
         return env
@@ -531,6 +530,38 @@ class Env:
         gen.add_build(edge)
         return obj
 
+    def _compute_id(self) -> str:
+        """
+        Computes a content-based hash of this environment's variables.
+
+        The hash is used as the suffix for object files produced by `Env.objs`. By hashing the
+        variables instead of using a positional ID, environments with the same configuration yield
+        the same hash and therefore the same output paths. This avoids spurious rebuilds when other
+        environments are added, removed, or reordered.
+
+        Returns
+        -------
+        A short hex string representing the hash.
+        """
+
+        hasher = hashlib.sha256()
+        for key in sorted(self._vars.keys()):
+            val = self._vars[key]
+            if isinstance(val, list):
+                for item in val:
+                    hasher.update(repr(item).encode('utf-8'))
+                    hasher.update(b'\x00')
+            elif isinstance(val, dict):
+                for k in sorted(val.keys()):
+                    hasher.update(repr(k).encode('utf-8'))
+                    hasher.update(b'\x00')
+                    hasher.update(repr(val[k]).encode('utf-8'))
+                    hasher.update(b'\x00')
+            else:
+                hasher.update(repr(val).encode('utf-8'))
+            hasher.update(b'\x00')
+        return hasher.hexdigest()[:8]
+
     def objs(self, gen: Generator, ins: list[str]) -> list[BuildPath]:
         """
         Produces object files for the given input files
@@ -551,7 +582,7 @@ class Env:
 
         # add a per-environment suffix to allow users to build the same files in different
         # environments without interference
-        suffix = str(self._id) + '.o'
+        suffix = self._compute_id() + '.o'
         objs = []
         for i in ins:
             if i.endswith('.S') or i.endswith('.s'):
