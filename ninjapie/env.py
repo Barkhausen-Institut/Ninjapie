@@ -757,7 +757,8 @@ class Env:
         gen.add_build(edge)
         return bin
 
-    def rust_lib(self, gen: Generator, out: str, deps: list[str] = None, dir: str = None) -> BuildPath:
+    def rust_lib(self, gen: Generator, out: str,
+                 deps: list[str] = None, dir: str = None) -> BuildPath:
         """
         Produces a Rust library
 
@@ -792,7 +793,8 @@ class Env:
         deps = [] if deps is None else deps
         return self.rust(gen, ['lib' + out + '.a'], deps, dir)[0]
 
-    def rust_exe(self, gen: Generator, out: str, deps: list[str] = None, dir: str = None) -> BuildPath:
+    def rust_exe(self, gen: Generator, out: str,
+                 deps: list[str] = None, dir: str = None) -> BuildPath:
         """
         Produces a Rust executable
 
@@ -827,7 +829,8 @@ class Env:
         deps = [] if deps is None else deps
         return self.rust(gen, [out], deps, dir)[0]
 
-    def rust(self, gen: Generator, outs: list[str], deps: list[str], dir: str = None) -> [BuildPath]:
+    def rust(self, gen: Generator, outs: list[str],
+             deps: list[str], dir: str = None) -> [BuildPath]:
         """
         Produces multiple Rust libraries or executables
 
@@ -878,8 +881,8 @@ class Env:
         dest_dir = BuildPath(self.build_dir + '/' + self['RUSTOUT'] + '/' + target_dir + btype)
         out_paths = [BuildPath(dest_dir + '/' + o) for o in outs]
 
-        cmd = 'build' if len(self['RUSTCFLAGS']) == 0 else 'rustc'
-        flags = ' '.join(self['CRGFLAGS'])
+        flags = 'build' if len(self['RUSTCFLAGS']) == 0 else 'rustc'
+        flags += ' ' + ' '.join(self['CRGFLAGS'])
         # make sure that cargo puts it there
         flags += ' --target-dir "' + os.path.abspath(self.build_dir + '/' + self['RUSTOUT']) + '"'
         if len(self['RUSTCFLAGS']) > 0:
@@ -899,7 +902,7 @@ class Env:
             vars={
                 'cargo': self['CARGO'],
                 'dir': dir or self.cur_dir,
-                'cargoflags': cmd + ' ' + flags,
+                'cargoflags': flags,
                 'env': vars_str
             }
         )
